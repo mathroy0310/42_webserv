@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/16 01:12:06 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/16 13:52:05 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <cerrno>  // for errno
+#include <cstring> // for strerror
 
 /**********/
 /* Colors */
@@ -57,5 +59,16 @@
 #define NOT_FOUND_STATUS 404
 #define IM_A_TEAPOT_STATUS 418			 // april fools joke from 1998 lol
 #define INTERNAL_SERVER_ERROR_STATUS 500 // segfault
+
+/******************/
+/* Error Messages */
+/******************/
+#define RESET_NL RESET_COLOR << std::endl
+#define ERR_MSG_USAGE(arg) ERR_PREFIX << "Usage: " + std::string(arg) + " [file]" << RESET_NL
+#define ERR_MSG_READ(arg) ERR_PREFIX << std::string(arg) + " " + strerror(errno) << RESET_NL
+#define ERR_MSG_EMPTY(arg) ERR_PREFIX << std::string(arg) + " is empty" << RESET_NL
+#define ERR_MSG_BRACKETS ERR_PREFIX << "Brackets are not balanced" << RESET_NL
+#define ERR_MSG_SERVER_BLOCK_MISSING ERR_PREFIX << "server block is missing" << RESET_NL
+#define ERR_MSG_UNEXPECTED_TOKEN(arg) ERR_PREFIX << "Unexpected token in the " + std::string(arg) + " block" << RESET_NL
 
 #endif // DEFINES_H
