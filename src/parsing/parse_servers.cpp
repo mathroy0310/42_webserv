@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 16:39:52 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 16:51:47 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void parse_server_line(std::string line, t_server &server)
 	if (key == "server_name")
 	{
 		server.server_name = value;
-		std::cout << "server_name: " << server.server_name << std::endl;
+		// std::cout << "server_name: " << server.server_name << std::endl;
 	}
 	// TODO: check et parse la key et la value ofc , on defrait faire des get et set pour valeurs
 }
@@ -83,7 +83,6 @@ t_server parse_server_block(std::string line)
 				std::cerr << "error location" << FILE_LINE;
 				exit(EXIT_FAILURE);
 			}
-			std::cout << DEBUG_PREFIX << "location block found and valid ?" << std::endl;
 			line = trim(line.substr(bracket + 1, -1));
 			line.erase(line.find(semi_colon_line), semi_colon_line.length());
 			continue;
@@ -95,5 +94,6 @@ t_server parse_server_block(std::string line)
 			line.erase(0, semi_colon_pos + 1);
 		}
 	}
+	std::cout << GREEN << "Config file parsed successfully" << RESET_COLOR << std::endl;
 	return (server);
 }
