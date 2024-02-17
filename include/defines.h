@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/16 13:52:05 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 03:45:00 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <fstream>
 #include <cerrno>  // for errno
 #include <cstring> // for strerror
+#include <cstdlib>
 
 /**********/
 /* Colors */
