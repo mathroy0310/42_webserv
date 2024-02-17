@@ -6,13 +6,11 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 03:52:24 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 03:56:39 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 15:39:18 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "defines.h"
-#include "parsing.h"
-#include <stack>
+#include "parsing.hpp"
 
 /**
  * @brief Check if the brackets are balanced

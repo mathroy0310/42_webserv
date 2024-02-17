@@ -6,19 +6,18 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 03:45:00 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 16:46:18 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DEFINE_H
 #define DEFINE_H
 
-#pragma once
 #include <iostream>
 #include <fstream>
-#include <cerrno>  // for errno
-#include <cstring> // for strerror
-#include <cstdlib>
+#include <errno.h>	// for errno
+#include <string.h> // for strerror
+#include <stdlib.h>
 
 /**********/
 /* Colors */
@@ -70,6 +69,8 @@
 #define ERR_MSG_EMPTY(arg) ERR_PREFIX << std::string(arg) + " is empty" << RESET_NL
 #define ERR_MSG_BRACKETS ERR_PREFIX << "Brackets are not balanced" << RESET_NL
 #define ERR_MSG_SERVER_BLOCK_MISSING ERR_PREFIX << "server block is missing" << RESET_NL
-#define ERR_MSG_UNEXPECTED_TOKEN(arg) ERR_PREFIX << "Unexpected token in the " + std::string(arg) + " block" << RESET_NL
+#define ERR_MSG_UNEXPECTED_TOKEN(arg) ERR_PREFIX << "Unexpected token before the " + std::string(arg) + " block" << RESET_NL
+#define ERR_MSG_MISSING_SEMICOLON ERR_PREFIX << "Expected ';' at the end of declaration" << RESET_NL
+#define ERR_MSG_MISSING_EQUAL ERR_PREFIX << "Expected '=' after directive " << RESET_NL
 
 #endif // DEFINES_H
