@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 03:45:45 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 04:05:32 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,6 @@ int main(int argc, char **argv)
 		std::cerr << ERR_MSG_USAGE(argv[0]) << FILE_LINE;
 		return EXIT_FAILURE;
 	}
-
-	return (parse_conf(argv[1]));
+	int ret = parse_conf(argv[1]);
+	return (ret);
 }
