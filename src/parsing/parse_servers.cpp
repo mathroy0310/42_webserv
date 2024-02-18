@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 16:51:47 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 21:32:03 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ static void init(t_server &server)
 t_server parse_server_block(std::string line)
 {
 	t_server server;
-	t_location location;
+	std::vector<t_location> locations;
 
 	line = trim(line);
 	init(server);
@@ -72,18 +72,7 @@ t_server parse_server_block(std::string line)
 		{
 			size_t last_bracket = semi_colon_line.find("}");
 			semi_colon_line = line.substr(0, last_bracket + 1);
-			// parse location
-			// doit parse les block locations
-			line.erase(0, 8);
-			line.erase(line.length() - 1, 1);
-			line = trim(line);
-			size_t bracket = line.find("{");
-			if (bracket == line.npos)
-			{
-				std::cerr << "error location" << FILE_LINE;
-				exit(EXIT_FAILURE);
-			}
-			line = trim(line.substr(bracket + 1, -1));
+			locations.push_back(parse_location_block(trim(semi_colon_line)));
 			line.erase(line.find(semi_colon_line), semi_colon_line.length());
 			continue;
 		}
@@ -93,7 +82,8 @@ t_server parse_server_block(std::string line)
 			parse_server_line(semi_colon_line, server);
 			line.erase(0, semi_colon_pos + 1);
 		}
+		server.locations = locations;
 	}
-	std::cout << GREEN << "Config file parsed successfully" << RESET_COLOR << std::endl;
+	std::cout << GREEN << "Server block parsed successfully" << RESET_COLOR << std::endl;
 	return (server);
 }

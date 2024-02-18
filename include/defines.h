@@ -6,18 +6,18 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 16:46:18 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 21:27:48 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef DEFINE_H
-#define DEFINE_H
+#ifndef DEFINES_H
+# define DEFINES_H
 
 #include <iostream>
 #include <fstream>
-#include <errno.h>	// for errno
-#include <string.h> // for strerror
-#include <stdlib.h>
+#include <cerrno>	// for errno
+#include <cstring> // for strerror
+#include <cstdlib>
 
 /**********/
 /* Colors */
@@ -72,5 +72,6 @@
 #define ERR_MSG_UNEXPECTED_TOKEN(arg) ERR_PREFIX << "Unexpected token before the " + std::string(arg) + " block" << RESET_NL
 #define ERR_MSG_MISSING_SEMICOLON ERR_PREFIX << "Expected ';' at the end of declaration" << RESET_NL
 #define ERR_MSG_MISSING_EQUAL ERR_PREFIX << "Expected '=' after directive " << RESET_NL
+#define ERR_MSG_INVALID_LOCATION ERR_PREFIX << "Invalid location block" << RESET_NL
 
 #endif // DEFINES_H

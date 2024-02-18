@@ -1,28 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse_utils.cpp                                    :+:      :+:    :+:   */
+/*   parse_location.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/17 03:52:24 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 20:35:37 by maroy            ###   ########.fr       */
+/*   Created: 2024/02/17 21:09:39 by maroy             #+#    #+#             */
+/*   Updated: 2024/02/17 21:28:55 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parsing.hpp"
 
-/**
- * @brief Remove space and tabulation from the beginning and the end of a string
- *
- * @param line the line to trim
- * @return `std::string` the trimmed line
- */
-std::string trim(const std::string &str)
+static void init(t_location &location)
 {
-	size_t first = str.find_first_not_of(" \t");
-	if (first == std::string::npos)
-		return "";
-	size_t last = str.find_last_not_of(" \t");
-	return str.substr(first, (last - first + 1));
+	location.index = "";
+	location.root = "";
+	location.path = "";
+}
+
+t_location parse_location_block(std::string line)
+{
+	t_location location;
+
+	init(location);
+	if (line.substr(0, 8) != "location")
+	{
+		std::cerr << ERR_MSG_INVALID_LOCATION << FILE_LINE;
+		exit(EXIT_FAILURE);
+	}
+	return (location);
 }

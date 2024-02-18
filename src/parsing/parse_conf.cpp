@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 03:40:44 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 16:28:05 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 20:39:47 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,13 +43,10 @@ t_config parse_conf(const char *file)
 	result = process_file(conf_file);
 	if (is_empty_file(result, file))
 		exit(EXIT_FAILURE);
-	if (!brackets_balance(result))
-	{
-		std::cerr << ERR_MSG_BRACKETS << FILE_LINE;
+	if (!are_brackets_balanced(result))
 		exit(EXIT_FAILURE);
-	}
 
-	// while (result.size() > 0)
+	while (result.size() > 0)
 	{
 		result = trim(result);
 		if (trim(result.substr(0, 6)) != "server")

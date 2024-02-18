@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:38:25 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 15:48:54 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 20:36:21 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,4 +67,39 @@ std::string process_file(std::ifstream &file)
 			result += line;
 	}
 	return result;
+}
+
+/**
+ * @brief Check if the brackets are balanced
+ *
+ * @param str the string to check
+ * @return `true` the brackets are balanced
+ * @return `false` the brackets are not balanced
+ */
+bool are_brackets_balanced(const std::string &str)
+{
+	std::stack<char> s;
+	for (size_t i = 0; i < str.length(); i++)
+	{
+		char c = str[i];
+		if (c == '{' || c == '[')
+			s.push(c);
+		else if (c == '}' || c == ']')
+		{
+			if (s.empty())
+			{
+				std::cerr << ERR_MSG_BRACKETS << FILE_LINE;
+				return (false);
+			}
+			char top = s.top();
+			if ((c == '}' && top == '{') || (c == ']' && top == '['))
+				s.pop();
+			else
+			{
+				std::cerr << ERR_MSG_BRACKETS << FILE_LINE;
+				return (false);
+			}
+		}
+	}
+	return (s.empty());
 }

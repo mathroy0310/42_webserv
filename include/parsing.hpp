@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 16:27:49 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/17 21:28:42 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,22 +58,28 @@ t_config parse_conf(const char *file);
 /* parse_conf.cpp */
 /******************/
 
-std::string remove_comments(const std::string &line);
-bool can_read_file(const std::string filename, const std::ifstream &file);
-bool is_empty_file(const std::string &result, const std::string &file);
-std::string process_file(std::ifstream &file);
+std::string	remove_comments(const std::string &line);
+bool		can_read_file(const std::string filename, const std::ifstream &file);
+bool		is_empty_file(const std::string &result, const std::string &file);
+std::string	process_file(std::ifstream &file);
 
 /*********************/
 /* parse_servers.cpp */
 /*********************/
 
-t_server parse_server_block(std::string line);
+t_server	parse_server_block(std::string line);
 
 /*******************/
 /* parse_utils.cpp */
 /*******************/
 
-bool brackets_balance(const std::string &str);
-std::string trim(const std::string &str);
+bool		are_brackets_balanced(const std::string &str);
+std::string	trim(const std::string &str);
+
+/***********************/
+/* parse_locations.cpp */
+/***********************/
+
+t_location parse_location_block(std::string line);
 
 #endif // PARSING_HPP
