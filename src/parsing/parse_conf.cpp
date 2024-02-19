@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 03:40:44 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 20:39:47 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/18 20:03:49 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,35 @@ ssize_t find_matching_open_curly_brace(const std::string &str)
 	return (-1); // No matching open curly brace found
 }
 
-// ne devrait pas retourner int mais genre struct ou classe parse
+static std::string _parse_server(std::string &result, t_config &config)
+{
+    result = trim(result);
+    if (trim(result.substr(0, 6)) != "server")
+    {
+        std::cerr << ERR_MSG_SERVER_BLOCK_MISSING << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    result = trim(result.substr(6, -1));
+    if (result[0] != '{')
+    {
+        std::cerr << ERR_MSG_UNEXPECTED_TOKEN("server") << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    int block_len = find_matching_open_curly_brace(result);
+    if (block_len == -1)
+    {
+        std::cerr << ERR_MSG_BRACKETS << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    result.erase(0, 1);
+    result.erase(block_len - 1, 1);
+    std::string line = result.substr(0, block_len - 1);
+    config.servers.push_back(parse_server_block(line));
+    result.erase(result.find(line), line.length());
+
+    return (result);
+}
+
 t_config parse_conf(const char *file)
 {
 	std::string line;
@@ -45,32 +73,7 @@ t_config parse_conf(const char *file)
 		exit(EXIT_FAILURE);
 	if (!are_brackets_balanced(result))
 		exit(EXIT_FAILURE);
-
 	while (result.size() > 0)
-	{
-		result = trim(result);
-		if (trim(result.substr(0, 6)) != "server")
-		{
-			std::cerr << ERR_MSG_SERVER_BLOCK_MISSING << FILE_LINE;
-			exit(EXIT_FAILURE);
-		}
-		result = trim(result.substr(6, -1));
-		if (result[0] != '{')
-		{
-			std::cerr << ERR_MSG_UNEXPECTED_TOKEN("server") << FILE_LINE;
-			exit(EXIT_FAILURE);
-		}
-		int block_len = find_matching_open_curly_brace(result);
-		if (block_len == -1)
-		{
-			std::cerr << ERR_MSG_BRACKETS << FILE_LINE;
-			exit(EXIT_FAILURE);
-		}
-		result.erase(0, 1);
-		result.erase(block_len - 1, 1);
-		line = result.substr(0, block_len - 1);
-		config.servers.push_back(parse_server_block(line));
-		result.erase(result.find(line), line.length());
-	}
+		result = _parse_server(result, config);
 	return (config);
 }

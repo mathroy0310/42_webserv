@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 21:28:42 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/18 20:53:49 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <stack>
+#include <map>
 #include <iostream>
 #include "defines.h"
 
@@ -27,18 +28,24 @@
 // Location directive
 typedef struct s_location
 {
+	bool is_autoindex;
+	size_t max_body_size;
 	std::string path;
 	std::string root;
 	std::string index;
+	std::map<unsigned int, std::string> error_pages;
 } t_location;
 
 // Server directive
 typedef struct s_server
 {
 	int port;
+	bool is_autoindex;
+	size_t max_body_size;
 	std::string server_name;
 	std::string root;
 	std::string index;
+	std::map<unsigned int, std::string> error_pages;
 	std::vector<t_location> locations;
 } t_server;
 
@@ -81,5 +88,11 @@ std::string	trim(const std::string &str);
 /***********************/
 
 t_location parse_location_block(std::string line);
+
+/***********************/
+/* parse_directives.cpp */
+/***********************/
+std::string set_index(std::string &value, std::string &key);
+
 
 #endif // PARSING_HPP

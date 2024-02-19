@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/17 21:27:48 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/18 20:59:28 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,9 @@
 /* Prefixes */
 /************/
 #define ERR_PREFIX RED "Error: "
-#define WARN_PREFIX "Warning: "
-#define INFO_PREFIX "Info: "
-#define DEBUG_PREFIX "Debug: "
+#define WARN_PREFIX YELLOW "Warning: "
+#define INFO_PREFIX CYAN "Info: "
+#define DEBUG_PREFIX MAGENTA "Debug: "
 
 /*********************/
 /* Debugging Macros */
@@ -73,5 +73,7 @@
 #define ERR_MSG_MISSING_SEMICOLON ERR_PREFIX << "Expected ';' at the end of declaration" << RESET_NL
 #define ERR_MSG_MISSING_EQUAL ERR_PREFIX << "Expected '=' after directive " << RESET_NL
 #define ERR_MSG_INVALID_LOCATION ERR_PREFIX << "Invalid location block" << RESET_NL
+#define ERR_MSG_NO_VALUE(arg) ERR_PREFIX << "No value for " + std::string(arg) << RESET_NL
+
 
 #endif // DEFINES_H
