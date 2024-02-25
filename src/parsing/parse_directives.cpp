@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 20:48:46 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/19 01:29:20 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/25 13:15:15 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,4 +51,72 @@ std::string set_server_name(std::string &value, const std::string &key) {
         exit(EXIT_FAILURE);
     }
     return (value);
+}
+
+static std::string set_ip_address(std::string &value, const std::string &key) {
+    value = trim(value);
+    if (value == "localhost")
+        return ("127.0.0.1");
+    if (value.find_first_not_of("0123456789.") != value.npos || std::count(value.begin(), value.end(), '.') != 3) {
+        std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    std::istringstream iss(value);
+    std::string token;
+    while (std::getline(iss, token, '.')) {
+        if (token.empty() || token.find_first_not_of("0123456789") != token.npos || std::stoi(token) < 0 ||
+            std::stoi(token) > 255) {
+            std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+            exit(EXIT_FAILURE);
+        }
+    }
+    return (value);
+}
+
+static int set_port_number(std::string &value, const std::string &key) {
+    value = trim(value);
+    if (value.find_first_not_of("0123456789") != value.npos) {
+        std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    int port = std::stoi(value);
+    if (port < 0 || port > 65535) {
+        std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    return (port);
+}
+
+int set_port_and_ip_address(std::string &value, const std::string &key, std::string &ip_address) {
+    value = trim(value);
+    if (value.empty() || value == ";") {
+        std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    size_t separator = value.find(":");
+    if (separator != value.npos) {
+        std::string ip = value.substr(0, separator);
+        std::string port = value.substr(separator + 1, -1);
+        if (ip.empty() || port.empty()) {
+            std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
+            exit(EXIT_FAILURE);
+        }
+        ip_address = set_ip_address(ip, key);
+        return (set_port_number(port, key));
+    } else {
+        if (value == "localhost") {
+            ip_address = "127.0.0.1";
+            return (8080);
+        }
+        if (value.find('.') != value.npos) {
+            ip_address = set_ip_address(value, key);
+            return (8080);
+        } else if (value.find_first_not_of("0123456789") != value.npos) {
+            ip_address = "0.0.0.0";
+            return (set_port_number(value, key));
+        } else {
+            std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+            exit(EXIT_FAILURE);
+        }
+    }
 }

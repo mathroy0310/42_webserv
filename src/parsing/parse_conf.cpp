@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 03:40:44 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/19 01:29:23 by maroy            ###   ########.fr       */
+/*   Updated: 2024/02/25 13:39:30 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ t_config parse_conf(const char *file) {
     result = process_file(conf_file);
     if (is_empty_file(result, file))
         exit(EXIT_FAILURE);
-    if (!are_brackets_balanced(result))
+    if (are_brackets_balanced(result) == false)
         exit(EXIT_FAILURE);
     while (result.size() > 0)
         result = parse_server(result, config);
