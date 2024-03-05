@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/19 01:13:39 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/05 03:25:21 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,5 @@
 #define ERR_MSG_NO_LOCATION_PATH ERR_PREFIX << "No path for location" << RESET_NL
 #define ERR_MSG_NO_VALUE(arg) ERR_PREFIX << "No value for " + std::string(arg) << RESET_NL
 #define ERR_MSG_INVALID_VALUE(arg, value) ERR_PREFIX << "Invalid value for " + std::string(arg) + ": " + std::string(value) << RESET_NL
-
-
+#define ERR_MSG_INVALID_DIRECTIVE(arg) ERR_PREFIX << "Invalid directive: " + std::string(arg) << RESET_NL
 #endif // DEFINES_H

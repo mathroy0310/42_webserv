@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 20:48:46 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/25 13:15:15 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/05 03:28:14 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,12 +74,14 @@ static std::string set_ip_address(std::string &value, const std::string &key) {
 }
 
 static int set_port_number(std::string &value, const std::string &key) {
+    int port;
+
     value = trim(value);
     if (value.find_first_not_of("0123456789") != value.npos) {
         std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
         exit(EXIT_FAILURE);
     }
-    int port = std::stoi(value);
+    port = std::stoi(value);
     if (port < 0 || port > 65535) {
         std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
         exit(EXIT_FAILURE);
@@ -88,12 +90,14 @@ static int set_port_number(std::string &value, const std::string &key) {
 }
 
 int set_port_and_ip_address(std::string &value, const std::string &key, std::string &ip_address) {
+    size_t separator;
+
     value = trim(value);
     if (value.empty() || value == ";") {
         std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
         exit(EXIT_FAILURE);
     }
-    size_t separator = value.find(":");
+    separator = value.find(":");
     if (separator != value.npos) {
         std::string ip = value.substr(0, separator);
         std::string port = value.substr(separator + 1, -1);
@@ -118,5 +122,31 @@ int set_port_and_ip_address(std::string &value, const std::string &key, std::str
             std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
             exit(EXIT_FAILURE);
         }
+    }
+}
+
+void set_error_pages(std::string &value, const std::string &key, std::map<unsigned int, std::string> &error_pages) {
+    if (value.empty() || value == ";") {
+        std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    std::string token;
+    std::istringstream em(value);
+    while (std::getline(em, token)) {
+        token = trim(token);
+        size_t first = token.find_first_of(",");
+        if (first == std::string::npos) {
+            std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+            exit(EXIT_FAILURE);
+        }
+        std::string error_index = trim(token.substr(0, first));
+        std::string error_value = trim(token.substr(first + 1, -1));
+        if (error_index == "" || error_value == "" || error_index.find_first_not_of("0123456789") != value.npos) {
+            std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+            exit(EXIT_FAILURE);
+        }
+        // std::cout << DEBUG_PREFIX << key << ":: Index : " << error_index;
+        // std::cout << " | Value : " << error_value << std::endl;
+        error_pages[std::stoi(error_index.c_str())] = error_value;
     }
 }

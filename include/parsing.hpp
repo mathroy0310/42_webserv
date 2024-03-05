@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/25 13:16:52 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/05 03:10:40 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,13 @@
 #pragma once
 
 #include "defines.h"
+#include <algorithm>
 #include <iosfwd>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <stack>
+#include <string>
 #include <vector>
 
 /*********************/
@@ -98,5 +100,6 @@ bool set_autoindex(std::string &value, const std::string &key);
 std::string set_root(std::string &value, const std::string &key);
 std::string set_server_name(std::string &value, const std::string &key);
 int set_port_and_ip_address(std::string &value, const std::string &key, std::string &ip_address);
+void set_error_pages(std::string &value, const std::string &key, std::map<unsigned int, std::string> &error_pages);
 
 #endif  // PARSING_HPP

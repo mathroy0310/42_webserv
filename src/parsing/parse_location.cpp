@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 21:09:39 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/19 01:29:16 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/05 03:24:34 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,12 @@ void parse_location_directives(std::string &key, std::string &value, t_location 
         location.root = set_root(value, key);
     else if (key == "autoindex")
         location.is_autoindex = set_autoindex(value, key);
+    else if (key == "error_pages")
+        set_error_pages(value, key, location.error_pages);
+    else {
+        std::cerr << ERR_MSG_INVALID_DIRECTIVE(key) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
 }
 
 void parse_location_lines(std::string &line, t_location &location) {
