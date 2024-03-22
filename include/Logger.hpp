@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:55 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 16:27:00 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 16:59:21 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,14 @@
 # include "defines.h"
 # include "parsing.hpp"
 
-#define GST 1
+# include <iostream>
+# include <fstream>
+
+#define GST -4
 
 enum e_logLevel
 {
+	DEBUG,
 	INFO,
 	WARNING,
 	ERROR
@@ -41,16 +45,16 @@ enum e_logState
 class Logger
 {
 	public:
-		Logger(std::string log_file, e_logState state ,e_logType type);
+		Logger(std::string log_file, e_logState state = ENABLED ,e_logType type = BOTH);
 		~Logger(void);
-
+		void log(std::string message, std::string arg = "", e_logLevel level = INFO);
+ 
 	private:
 		
-		const std::string _log_file;
-		const e_logState		_log_state;
+		const std::string 	_log_filename;
+		const e_logState	_log_state;
 		const e_logType		_log_type;
-		
-		void log(std::string message, e_logLevel level);
+		std::ofstream _log_file;
 		std::string get_curr_time(void);
 
 };

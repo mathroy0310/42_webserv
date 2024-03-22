@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/05 03:31:50 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 17:11:41 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,17 +95,5 @@ t_server parse_server_block(std::string line) {
         }
     }
     server.locations = locations;
-    std::cout << INFO_PREFIX << "Server block parsed successfully" << RESET_COLOR << std::endl;
-    std::cout << DEBUG_PREFIX << "Server port: " << server.port << std::endl;
-    std::cout << DEBUG_PREFIX << "Server ip_address: " << server.ip_address << std::endl;
-    std::cout << DEBUG_PREFIX << "Server name: " << server.server_name << std::endl;
-    std::cout << DEBUG_PREFIX << "Server autoindex: " << server.is_autoindex << std::endl;
-    std::cout << DEBUG_PREFIX << "Server root: " << server.root << std::endl;
-    std::cout << DEBUG_PREFIX << "Server index: " << server.index << std::endl;
-    std::cout << DEBUG_PREFIX << "Server error_pages: " << std::endl;
-    for (std::map<unsigned int, std::string>::iterator it = server.error_pages.begin(); it != server.error_pages.end();
-         it++)
-        std::cout << "  Index: " << it->first << ", Value: " << it->second << std::endl;
-
     return (server);
 }

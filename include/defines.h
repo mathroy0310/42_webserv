@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/05 03:25:21 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 17:20:56 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <cerrno>	// for errno
 #include <cstring> // for strerror
 #include <cstdlib>
+#include <string>
 
 /**********/
 /* Colors */
@@ -28,6 +29,7 @@
 #define YELLOW "\033[1;33m"
 #define ORANGE "\033[1;34m"
 #define MAGENTA "\033[1;35m"
+#define GREY "\033[30;1m"
 #define CYAN "\033[1;36m"
 #define WHITE "\033[1;37m"
 

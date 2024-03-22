@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 21:09:39 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/05 03:24:34 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 17:11:48 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,5 @@ t_location parse_location_block(std::string line) {
 
     line = trim(line.substr(bracket + 1, -1));
     parse_location_lines(line, location);
-    std::cout << INFO_PREFIX << "Location block parsed successfully" << RESET_COLOR << std::endl;
     return (location);
 }
