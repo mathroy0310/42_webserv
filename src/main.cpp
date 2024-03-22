@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 17:11:26 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 17:42:17 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "defines.h"
 #include "parsing.hpp"
-//#include "Server.hpp"
+#include "Server.hpp"
 #include "Logger.hpp"
 
 int main(int argc, char **argv)
@@ -49,8 +49,10 @@ int main(int argc, char **argv)
 	}
 	
 	(void)config;
-	// Server server(config);
+	Server server(config);
 
-	// server.convertIPToInt(argv[1]);
+	server.convertAddressToIP("pornhub.com");
+	server.prepareSocket();
+	
 	return (0);
 }

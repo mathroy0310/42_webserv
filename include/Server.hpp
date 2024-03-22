@@ -6,7 +6,7 @@
 /*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:27:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 17:06:45 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/22 17:40:48 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class Server
 		~Server(void);
 
         // Member functions
-        int convertIPToInt(const std::string &address);
+        int convertAddressToIP(const std::string &address);
         int prepareSocket(void);
 
 
@@ -48,7 +48,6 @@ class Server
                 return "ERROR!!!";
             }
         };
-
 	private:
 
 		Server(void);

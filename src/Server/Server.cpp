@@ -24,7 +24,7 @@ Server	&Server::operator=(Server const &rhs){
 }
 
 // Member functions
-int Server::convertIPToInt(const std::string &address) {
+int Server::convertAddressToIP(const std::string &address) {
     addrinfo hints; // Hints or "filters" for getaddrinfo()
     addrinfo *r;    // Pointer to iterate on results
     int status; // Return value of getaddrinfo()
