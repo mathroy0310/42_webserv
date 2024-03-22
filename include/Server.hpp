@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:27:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 16:27:50 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 17:06:45 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,18 +21,14 @@
 # include <string>
 
 # include <netinet/in.h>
+
+# include <arpa/inet.h>
+
+# include <sys/types.h>
+# include <sys/socket.h>
 # include <netdb.h> 
 
-struct addrinfo {
-    int              ai_flags;
-    int              ai_family;
-    int              ai_socktype;
-    int              ai_protocol;
-    size_t           ai_addrlen;
-    struct sockaddr *ai_addr;
-    char            *ai_canonname;
-    struct addrinfo *ai_next;
-};
+# include <sys/socket.h>
 
 class Server
 {
@@ -42,7 +38,8 @@ class Server
 		~Server(void);
 
         // Member functions
-        int convertIPToInt(const std::string &IPAddress);    
+        int convertIPToInt(const std::string &address);
+        int prepareSocket(void);
 
 
         // Exceptions
@@ -60,7 +57,8 @@ class Server
 
         // Attributes
 		const t_config _config;
-        int _ipAddress;
+        addrinfo *_addressInfo;
+        // int _ipAddress;
 };
 
 #endif	// SERVER_HPP
