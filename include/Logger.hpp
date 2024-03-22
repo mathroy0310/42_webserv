@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:55 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 16:59:21 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 18:08:41 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Logger
 		const e_logState	_log_state;
 		const e_logType		_log_type;
 		std::ofstream _log_file;
-		std::string get_curr_time(void);
+		std::string _get_curr_time(void);
 
 };
 

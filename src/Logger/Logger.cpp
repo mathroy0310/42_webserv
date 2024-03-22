@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 17:20:40 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 18:08:37 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void Logger::log(std::string message, std::string arg, e_logLevel level){
 		break;
 	}
 
-	std::string log_message = this->get_curr_time() + "[" + log_level + "]\t" + message + " " + arg;
+	std::string log_message = this->_get_curr_time() + "[" + log_level + "]\t" + message + " " + arg;
 	std::string log_tty_message = log_color + "[" + log_level + "]\t"+ RESET_COLOR + message + " " + GREY + arg;
 	if (this->_log_state == ENABLED)
 	{
@@ -57,7 +57,7 @@ void Logger::log(std::string message, std::string arg, e_logLevel level){
 	}
 }
 
-std::string Logger::get_curr_time(void){
+std::string Logger::_get_curr_time(void){
 	tzset();
 	char date[1000];
     time_t now = time(0);
