@@ -6,7 +6,7 @@
 /*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 17:42:17 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/22 18:02:07 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	(void)config;
 	Server server(config);
 
-	server.convertAddressToIP("pornhub.com");
+	server.convertAddressToIP("localhost");
 	server.prepareSocket();
 	
 	return (0);

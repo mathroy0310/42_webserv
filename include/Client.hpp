@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 18:03:36 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 18:05:49 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/22 18:28:53 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,14 @@ class Client
 {
 	public:
 
-		Client(std::string ip_address, int port);
+		Client(std::string ip_address);
 		~Client(void);
 
 	private:
 
 		std::string _ip_address;
-		int 		_port;
-		int 		_socket_fd;
+		// const int 		_port;
+		// const int 		_socket_fd;
 
 };
 

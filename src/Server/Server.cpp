@@ -35,7 +35,7 @@ int Server::convertAddressToIP(const std::string &address) {
     hints.ai_socktype = SOCK_STREAM; // TCP
 
     // Get the associated IP address(es)
-    status = getaddrinfo(address.c_str(), 0, &hints, &this->_addressInfo);
+    status = getaddrinfo(address.c_str(), "80", &hints, &this->_addressInfo);
     if (status != 0) { // error !
         std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
         return (2);
@@ -58,18 +58,105 @@ int Server::convertAddressToIP(const std::string &address) {
 }
 
 int Server::prepareSocket(void) {
-    int socketfd; // File descriptor for the socket
+    addrinfo hints; // Hints or "filters" for getaddrinfo()
 
-    socketfd = socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype, this->_addressInfo->ai_protocol);
-    std::cout << "Socket file descriptor: " << socketfd << std::endl;
+    memset(&hints, 0, sizeof hints); // Initialize the structure
+    hints.ai_family = AF_INET; // IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM; // TCP
+    hints.ai_flags = AI_PASSIVE; // Use my IP
 
-    std::cout << connect(socketfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen) << std::endl;
+    // Get the associated IP address(es)
+    int status = getaddrinfo(NULL, PORT, &hints, &this->_addressInfo);
+    if (status != 0) { // error !
+        std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
+        return (1);
+    }
+
+    // create socket, bind it and listen with it
+    int sockfd = socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype, this->_addressInfo->ai_protocol);
+    if (sockfd == -1) {
+        perror("socket");
+        exit(1);
+    }
+
+    // Allow the socket to be reused
+    status = bind(sockfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen);
+    if (status == -1) {
+        perror("bind");
+        exit(1);
+    }
+
+    // 
+    status = listen(sockfd, SOMAXCONN); // SOMAXCONN
+    if (status == -1) {
+        perror("listen");
+        exit(1);
+    }
+
+    std:: cout << "Server is listening on port " << PORT << std::endl;
+
+    // Accept incoming connection
 
 
-    close(socketfd);
+    sockaddr_storage clientAddress;
+    socklen_t addr_size = sizeof(clientAddress);
 
-    return (socketfd);
+    char buffer[1026]; // Buffer to convert IP address
+
+    while (true) {
+        int clientfd = accept(sockfd, (struct sockaddr *)&clientAddress, &addr_size);
+        if (clientfd == -1) {
+            perror("accept");
+            exit(1);
+        }
+
+        write(clientfd, "Hello, world!", 13);
+
+        read(clientfd, buffer, 1024);
+
+        std::cout << "Server: got message: " << buffer << std::endl;
+
+        std::cout << "Server: got connection from " << inet_ntoa(((struct sockaddr_in *)&clientAddress)->sin_addr) << std::endl;
+
+        close(clientfd);
+    }
+
+
+
+    // Close the socket
+    close(sockfd);
+    
+    return (0);
 }
+
+// int Server::prepareSocket(void) {
+//     int socketfd; // File descriptor for the socket
+//     int status;
+
+//     socketfd = socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype, this->_addressInfo->ai_protocol);
+
+//     if (socketfd == -1) {
+//         perror("socket");
+//         exit(1);
+//     }
+
+//     status = bind(socketfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen);
+
+//     std::cout << "Socket fd: " << socketfd << std::endl;
+//     std::cout << "Address: " << this->_addressInfo->ai_addr << std::endl;
+//     std::cout << "Address length: " << this->_addressInfo->ai_addrlen << std::endl;
+
+//     if (status == -1) {
+//         perror("bind");
+//         exit(1);
+//     }
+
+//     status = listen(socketfd, 2);
+
+//     close(socketfd);
+
+//     return (socketfd);
+// }
 
 // int Server::prepareSocket(void) {
 //     int sockfd; // File descriptor for the socket
