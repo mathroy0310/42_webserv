@@ -1,31 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
+/*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
 /*   Updated: 2024/03/22 16:27:00 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "defines.h"
-#include "parsing.hpp"
-#include "Server.hpp"
+#include "Logger.hpp"
 
-int main(int argc, char **argv)
-{
-	if (argc == 1)
-		argv[1] = (char *)"./conf/def.conf";
-	if (argc > 2)
-	{
-		std::cerr << ERR_MSG_USAGE(argv[0]) << FILE_LINE;
-		return EXIT_FAILURE;
-	}
-	t_config config = parse_conf(argv[1]);
-	Server server(config);
-
-	server.convertIPToInt(argv[1]);
-	return (0);
+Logger::Logger(std::string log_file, e_logState state ,e_logType type) : _log_file(log_file), _log_state(state), _log_type(type){
+	return;
 }
+
+Logger::~Logger(void) {
+	return;
+}
+
+void log(std::string message, e_logLevel level){
+	(void)message;
+	(void)level;
+}
+
+std::string get_curr_time(void){
+	tzset();
+	char date[1000];
+    time_t now = time(0);
+    struct tm tm = *gmtime(&now);
+    tm.tm_hour = tm.tm_hour + GST;
+    strftime(date, sizeof(date), "[%Y-%m-%d  %H:%M:%S]\t", &tm);
+    return (std::string(date));
+}
+
+

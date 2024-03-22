@@ -1,31 +1,58 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Logger.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
+/*   Created: 2024/03/22 15:50:55 by maroy             #+#    #+#             */
 /*   Updated: 2024/03/22 16:27:00 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "defines.h"
-#include "parsing.hpp"
-#include "Server.hpp"
+#ifndef LOGGER_HPP
+# define LOGGER_HPP
 
-int main(int argc, char **argv)
+# include "defines.h"
+# include "parsing.hpp"
+
+#define GST 1
+
+enum e_logLevel
 {
-	if (argc == 1)
-		argv[1] = (char *)"./conf/def.conf";
-	if (argc > 2)
-	{
-		std::cerr << ERR_MSG_USAGE(argv[0]) << FILE_LINE;
-		return EXIT_FAILURE;
-	}
-	t_config config = parse_conf(argv[1]);
-	Server server(config);
+	INFO,
+	WARNING,
+	ERROR
+};
 
-	server.convertIPToInt(argv[1]);
-	return (0);
-}
+enum e_logType
+{
+	BOTH,
+	CONSOLE,
+	OUT_FILE
+};
+
+enum e_logState
+{
+	ENABLED,
+	DISABLED
+};
+
+class Logger
+{
+	public:
+		Logger(std::string log_file, e_logState state ,e_logType type);
+		~Logger(void);
+
+	private:
+		
+		const std::string _log_file;
+		const e_logState		_log_state;
+		const e_logType		_log_type;
+		
+		void log(std::string message, e_logLevel level);
+		std::string get_curr_time(void);
+
+};
+
+#endif // LOGGER_HPP
