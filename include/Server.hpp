@@ -5,62 +5,79 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/22 15:27:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 19:45:42 by rmarceau         ###   ########.fr       */
+/*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
+/*   Updated: 2024/03/23 16:36:22 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#pragma once
 
-#define PORT "8082"
-#define BACKLOG 2
+#define PORT 8080
+#define BACKLOG SOMAXCONN
+#define BUFFER_SIZE 1024
 
-# include "defines.h"
-# include "parsing.hpp"
+#include "defines.h"
+#include "parsing.hpp"
 
-# include <exception>
-
-# include <string>
-
-# include <arpa/inet.h>
-
-#include <errno.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
-class Server
-{
-	public:
+class Server {
+public:
+    // Constructors and destructors
+    Server(void);
+    Server(const t_config &config);
+    Server(const Server &src);
+    ~Server(void);
 
-		Server(t_config config);
-		~Server(void);
+    // Operators
+    Server &operator=(const Server &rhs);
 
-        // Member functions
-        int convertAddressToIP(const std::string &address);
-        int prepareSocket(void);
+    // Member functions
+    void start(void);
 
+    // Base class for Server exceptions
+    class ServerException : public std::exception {
+    protected:
+        std::string _message;
+    public:
+        ServerException(const std::string &message) : 
+            _message(message + ":" + strerror(errno)) {}
+        virtual const char *what() const throw() {
+            return this->_message.c_str();
+        }
+    };
+private:
+    // Attributes
+    const t_config _config;
 
-        // Exceptions
-        class ErrorException : public std::exception {
-            virtual const char *what() const throw() {
-                return "ERROR!!!";
-            }
-        };
-	private:
+    int _socket;
+    int _client_socket;
+    struct sockaddr_in _address;
+    struct sockaddr_in _client_address;
+    socklen_t _client_address_len;   
 
-		Server(void);
-		Server(Server const &src);
-		Server	&operator=(Server const &rhs);
-
-        // Attributes
-		const t_config _config;
-        addrinfo *_addressInfo;
-
+    // Member functions
+    int createSocket(void);
+    void bindSocket(int socket);
+    void listenConnection(int socket);
+    bool acceptConnection(int socket);
+    void handleRequest(int client_socket);
+    void closeSocket(void);
+    
+    // Getters
+    int getSocket(void) const;
+    int getClientSocket(void) const;
+    struct sockaddr_in getAddress(void) const;
+    struct sockaddr_in getClientAddress(void) const;
+    socklen_t getClientAddressLen(void) const;
+    
+    // Setters
+    void setSocket(int socket);
+    void setClientSocket(int client_socket);
+    void setAddress(struct sockaddr_in address);
+    void setClientAddress(struct sockaddr_in client_address);
+    void setClientAddressLen(socklen_t client_address_len);
 };
-
-#endif	// SERVER_HPP
-
+// Path: include/Server.hpp
