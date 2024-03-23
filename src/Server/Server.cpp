@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 01:22:26 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 01:33:37 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/23 01:48:40 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,52 @@ int Server::convertAddressToIP(const std::string &address) {
     return (0);
 }
 
+int Server::createSocket() {
+    int sockfd =
+        socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype, this->_addressInfo->ai_protocol);
+    if (sockfd == -1) {
+        perror("socket");
+        exit(1);
+    }
+    return sockfd;
+}
+
+void Server::bindAndListen(int sockfd) {
+    int status = bind(sockfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen);
+    if (status == -1) {
+        perror("bind");
+        exit(1);
+    }
+
+    status = listen(sockfd, SOMAXCONN);
+    if (status == -1) {
+        perror("listen");
+        exit(1);
+    }
+}
+
+void Server::handleClient(int clientfd) {
+    char buffer[1026];
+    ssize_t bytes_sent = send(clientfd, "Hello, world!", 13, 0);
+    if (bytes_sent == -1) {
+        perror("send");
+        close(clientfd);
+        return;
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    ssize_t bytes_received = recv(clientfd, buffer, 1024, 0);
+    if (bytes_received == -1) {
+        perror("recv");
+        close(clientfd);
+        return;
+    }
+
+    buffer[bytes_received] = '\0';  // Null-terminate the received data
+
+    std::cout << "Server: got message: " << buffer << std::endl;
+}
+
 int Server::prepareSocket(void) {
     addrinfo hints;
 
@@ -77,29 +123,11 @@ int Server::prepareSocket(void) {
         return (1);
     }
 
-    int sockfd =
-        socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype, this->_addressInfo->ai_protocol);
-    if (sockfd == -1) {
-        perror("socket");
-        exit(1);
-    }
-
-    status = bind(sockfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen);
-    if (status == -1) {
-        perror("bind");
-        exit(1);
-    }
-
-    status = listen(sockfd, SOMAXCONN);
-    if (status == -1) {
-        perror("listen");
-        exit(1);
-    }
+    int sockfd = createSocket();
+    bindAndListen(sockfd);
 
     sockaddr_storage clientAddress;
     socklen_t addr_size = sizeof(clientAddress);
-
-    char buffer[1026];
 
     while (true) {
         int clientfd = accept(sockfd, (struct sockaddr *)&clientAddress, &addr_size);
@@ -108,24 +136,7 @@ int Server::prepareSocket(void) {
             exit(1);
         }
 
-        ssize_t bytes_sent = send(clientfd, "Hello, world!", 13, 0);
-        if (bytes_sent == -1) {
-            perror("send");
-            close(clientfd);
-            continue;
-        }
-
-        memset(buffer, 0, sizeof(buffer));
-        ssize_t bytes_received = recv(clientfd, buffer, 1024, 0);
-        if (bytes_received == -1) {
-            perror("recv");
-            close(clientfd);
-            continue;
-        }
-
-        buffer[bytes_received] = '\0';  // Null-terminate the received data
-
-        std::cout << "Server: got message: " << buffer << std::endl;
+        handleClient(clientfd);
 
         std::cout << "Server: got connection from " << inet_ntoa(((struct sockaddr_in *)&clientAddress)->sin_addr)
                   << std::endl;

@@ -6,14 +6,14 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 01:23:34 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/23 01:48:39 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Logger.hpp"
+#include "Server.hpp"
 #include "defines.h"
 #include "parsing.hpp"
-#include "Server.hpp"
-#include "Logger.hpp"
 
 void logServerDetails(Logger &logger, const t_config &config) {
     for (size_t i = 0; i < config.servers.size(); i++) {
