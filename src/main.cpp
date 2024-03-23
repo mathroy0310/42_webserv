@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 01:48:39 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/23 16:59:20 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,7 @@ int main(int argc, char **argv) {
     logServerDetails(logger, config);
 
     Server server(config);
-    server.convertAddressToIP("localhost");
-    server.prepareSocket();
+	server.start();
 
-    return 0;
+    return EXIT_SUCCESS;
 }

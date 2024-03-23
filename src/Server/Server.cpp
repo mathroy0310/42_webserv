@@ -3,218 +3,179 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/23 01:22:26 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 01:48:40 by maroy            ###   ########.fr       */
+/*   Created: 2024/03/23 12:47:59 by rmarceau          #+#    #+#             */
+/*   Updated: 2024/03/23 16:58:23 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-// Constructors
-Server::Server(t_config config) : _config(config) {}
+// Constructors and destructors
+Server::Server(void) : _socket(0), _client_socket(0) {}
 
-Server::Server(void) {}
+Server::Server(const t_config &config) : _socket(0), _client_socket(0), _config(config) {}
 
-// Destructor
+Server::Server(const Server &src) {
+    *this = src;
+}
+
 Server::~Server(void) {
-
-    freeaddrinfo(this->_addressInfo);  // Free memory
+    closeSocket();
 }
 
 // Operators
-Server &Server::operator=(Server const &rhs) {
-    (void)rhs;
-    return (*this);
+Server &Server::operator=(const Server &rhs) {
+    if (this != &rhs) {
+        this->_socket = rhs._socket;
+        this->_client_socket = rhs._client_socket;
+        this->_address = rhs._address;
+        this->_client_address = rhs._client_address;
+        this->_client_address_len = rhs._client_address_len;
+    }
+    return *this;
 }
 
 // Member functions
-int Server::convertAddressToIP(const std::string &address) {
-    addrinfo hints;                 // Hints or "filters" for getaddrinfo()
-    addrinfo *r;                    // Pointer to iterate on results
-    int status;                     // Return value of getaddrinfo()
-    char buffer[INET6_ADDRSTRLEN];  // Buffer to convert IP address
+void Server::start(void) {
+    std::cout << "Starting server..." << std::endl;
 
-    memset(&hints, 0, sizeof hints);  // Initialize the structure
-    hints.ai_family = AF_INET;        // IPv4 or IPv6
-    hints.ai_socktype = SOCK_STREAM;  // TCP
+    int socket = Server::createSocket();
+    Server::bindSocket(socket);
 
-    // Get the associated IP address(es)
-    status = getaddrinfo(address.c_str(), "80", &hints, &this->_addressInfo);
-    if (status != 0) {  // error !
-        std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
-        return (2);
-    }
-
-    std::cout << "IP adresses for " << address << ":" << std::endl;
-
-    r = this->_addressInfo;  // First address in getaddrinfo()'s results
-    while (r != NULL) {
-        // we need to cast the address as a sockaddr_in structure to
-        // get the IP address, since ai_addr might be either
-        // sockaddr_in (IPv4) or sockaddr_in6 (IPv6)
-        struct sockaddr_in *ipv4 = (struct sockaddr_in *)r->ai_addr;
-        // Convert the integer into a legible IP address string
-        inet_ntop(r->ai_family, &(ipv4->sin_addr), buffer, sizeof buffer);
-        std::cout << "IPv4: " << buffer << std::endl;
-        r = r->ai_next;  // Next address in getaddrinfo()'s results
-    }
-    return (0);
-}
-
-int Server::createSocket() {
-    int sockfd =
-        socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype, this->_addressInfo->ai_protocol);
-    if (sockfd == -1) {
-        perror("socket");
-        exit(1);
-    }
-    return sockfd;
-}
-
-void Server::bindAndListen(int sockfd) {
-    int status = bind(sockfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen);
-    if (status == -1) {
-        perror("bind");
-        exit(1);
-    }
-
-    status = listen(sockfd, SOMAXCONN);
-    if (status == -1) {
-        perror("listen");
-        exit(1);
-    }
-}
-
-void Server::handleClient(int clientfd) {
-    char buffer[1026];
-    ssize_t bytes_sent = send(clientfd, "Hello, world!", 13, 0);
-    if (bytes_sent == -1) {
-        perror("send");
-        close(clientfd);
-        return;
-    }
-
-    memset(buffer, 0, sizeof(buffer));
-    ssize_t bytes_received = recv(clientfd, buffer, 1024, 0);
-    if (bytes_received == -1) {
-        perror("recv");
-        close(clientfd);
-        return;
-    }
-
-    buffer[bytes_received] = '\0';  // Null-terminate the received data
-
-    std::cout << "Server: got message: " << buffer << std::endl;
-}
-
-int Server::prepareSocket(void) {
-    addrinfo hints;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    int status = getaddrinfo(NULL, PORT, &hints, &this->_addressInfo);
-    if (status != 0) {
-        std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
-        return (1);
-    }
-
-    int sockfd = createSocket();
-    bindAndListen(sockfd);
-
-    sockaddr_storage clientAddress;
-    socklen_t addr_size = sizeof(clientAddress);
-
+    Server::listenConnection(socket);
+    std::cout << "Server is listening on port " << PORT << std::endl;
     while (true) {
-        int clientfd = accept(sockfd, (struct sockaddr *)&clientAddress, &addr_size);
-        if (clientfd == -1) {
-            perror("accept");
-            exit(1);
-        }
+        if (!Server::acceptConnection(socket))
+            continue;
 
-        handleClient(clientfd);
+        int client_socket = this->getClientSocket();
+        struct sockaddr_in client_address = this->getClientAddress();
+        char *client_ip = inet_ntoa(client_address.sin_addr);
+        uint16_t client_port = ntohs(client_address.sin_port);
+        
+        std::cout << std::endl;
+        std::cout << "Connection accepted from " << client_ip << ":" << client_port << std::endl;
+        std::cout << std::endl;
 
-        std::cout << "Server: got connection from " << inet_ntoa(((struct sockaddr_in *)&clientAddress)->sin_addr)
-                  << std::endl;
-
-        close(clientfd);
+        Server::handleRequest(client_socket);
+        
+        close(client_socket);
     }
-
-    close(sockfd);
-
-    return (0);
 }
 
-// int Server::prepareSocket(void) {
-//     int socketfd; // File descriptor for the socket
-//     int status;
+int Server::createSocket(void) {
+    // Create a new socket file descriptor
+    int socket = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (socket == -1) {
+        throw ServerException("Socket creation failed");        
+    }
 
-//     socketfd = socket(this->_addressInfo->ai_family, this->_addressInfo->ai_socktype,
-//     this->_addressInfo->ai_protocol);
+    // Store ou Return le socket... je sais pas
+    this->setSocket(socket);
+    return socket;
+}
 
-//     if (socketfd == -1) {
-//         perror("socket");
-//         exit(1);
-//     }
+void Server::bindSocket(int socket) {
+    // Initialize the address structure to zero before setting its parameters
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof(address));
 
-//     status = bind(socketfd, this->_addressInfo->ai_addr, this->_addressInfo->ai_addrlen);
+    // Set the family, port, and IP address in the sockaddr_in structure
+    address.sin_family = AF_INET;            // Specifies the address family (IPv4)
+    address.sin_port = ::htons(PORT);        // Specifies the port number, converted to network byte order
+    address.sin_addr.s_addr = INADDR_ANY;    // Listen on all network interfaces
 
-//     std::cout << "Socket fd: " << socketfd << std::endl;
-//     std::cout << "Address: " << this->_addressInfo->ai_addr << std::endl;
-//     std::cout << "Address length: " << this->_addressInfo->ai_addrlen << std::endl;
+    // Attempt to bind the socket to the address and port specified
+    int status = ::bind(socket, (struct sockaddr *)&address, sizeof(address));
+    if (status == -1) {
+        throw ServerException("Socket binding failed");
+    }
+}
 
-//     if (status == -1) {
-//         perror("bind");
-//         exit(1);
-//     }
+void Server::listenConnection(int socket) {    
+    // Attempt to listen on the socket for incoming connections
+    int status = ::listen(socket, BACKLOG);
+    if (status == -1) {
+        throw ServerException("Socket listening failed");
+    }
+}
 
-//     status = listen(socketfd, 2);
+bool Server::acceptConnection(int socket) {
+    // Initialize the address structure to zero before setting its parameters
+    struct sockaddr_in client_address;
+    memset(&client_address, 0, sizeof(client_address));
+        
+    // Accept a new connection on the socket and store the client's address in the client_address structure
+    socklen_t client_address_len = sizeof(client_address);
+    int client_socket = ::accept(socket, (struct sockaddr *)&client_address, &client_address_len);
+    
+    // Check if the accept operation was successful
+    if (client_socket == -1) {
+        std::cerr << "Failed to accept connection: " << strerror(errno) << std::endl;
+        return false;
+    }
 
-//     close(socketfd);
+    this->setClientSocket(client_socket);
+    this->setClientAddress(client_address);
+    this->setClientAddressLen(client_address_len);
 
-//     return (socketfd);
-// }
+    return true;
+}
 
-// int Server::prepareSocket(void) {
-//     int sockfd; // File descriptor for the socket
-//     int yes = 1; // For setsockopt()
-//     addrinfo *p; // Pointer to iterate on results
 
-//     // Iterate through all the results and bind to the first we can
-//     for(p = this->_addressInfo; p != NULL; p = p->ai_next) {
-//         // Create the socket
-//         sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-//         if (sockfd == -1) {
-//             perror("server: socket");
-//             continue;
-//         }
+void Server::handleRequest(int client_socket) {
+    // Initialize a buffer to store the incoming data
+    char buffer[BUFFER_SIZE];
+    
+    // Receive data from the client and store it in the buffer
+    ssize_t bytes_received = ::recv(client_socket, buffer, BUFFER_SIZE, 0);
+    if (bytes_received == -1) {
+        throw ServerException("Failed to receive data");
+    }
+    
+    // Print the received data
+    std::cout << "Received " << bytes_received << " bytes: " << buffer << std::endl;
+    
+    // Send a response back to the client
+    const char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello, World!";
+    ssize_t bytes_sent = ::send(client_socket, response, strlen(response), 0);
+    if (bytes_sent == -1) {
+        throw ServerException("Failed to send data");
+    }
+    
+    // Print the number of bytes sent
+    std::cout << "Sent " << bytes_sent << " bytes: " << response << std::endl;
+}
 
-//         // Allow the socket to be reused
-//         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-//             perror("setsockopt");
-//             exit(1);
-//         }
+void Server::closeSocket(void) {
+    // Retrieve the socket file descriptor
+    int socket = this->getSocket();
+    
+    // Close the socket file descriptor
+    ::close(socket);
+}
 
-//         // Bind the socket to the port
-//         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-//             close(sockfd);
-//             perror("server: bind");
-//             continue;
-//         }
+// Getters
+int Server::getSocket(void) const { return this->_socket; }
 
-//         break;
-//     }
+int Server::getClientSocket(void) const { return this->_client_socket; }
 
-//     freeaddrinfo(this->_addressInfo); // Free memory
+struct sockaddr_in Server::getAddress(void) const { return this->_address; }
 
-//     if (p == NULL) {
-//         std::cerr << "server: failed to bind" << std::endl;
-//         exit(1);
-//     }
+struct sockaddr_in Server::getClientAddress(void) const { return this->_client_address; }
 
-//     return (sockfd);
-// }
+socklen_t Server::getClientAddressLen(void) const { return this->_client_address_len; }
+
+// Setters
+
+void Server::setSocket(int socket) { this->_socket = socket; }
+
+void Server::setClientSocket(int client_socket) { this->_client_socket = client_socket; }
+
+void Server::setAddress(struct sockaddr_in address) { this->_address = address; }
+
+void Server::setClientAddress(struct sockaddr_in client_address) { this->_client_address = client_address; }
+
+void Server::setClientAddressLen(socklen_t client_address_len) { this->_client_address_len = client_address_len; }
