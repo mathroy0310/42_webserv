@@ -3,37 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 16:59:20 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/23 18:39:19 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Logger.hpp"
-#include "Server.hpp"
-#include "defines.h"
-#include "parsing.hpp"
+#include "webserv.h"
 
-void logServerDetails(Logger &logger, const t_config &config) {
-    for (size_t i = 0; i < config.servers.size(); i++) {
-        logger.log("Server " + std::to_string(i) + " name: ", config.servers[i].server_name);
-        logger.log("Server " + std::to_string(i) + " port: ", std::to_string(config.servers[i].port));
-        logger.log("Server " + std::to_string(i) + " root: ", config.servers[i].root);
-        logger.log("Server " + std::to_string(i) + " index: ", config.servers[i].index);
-        logger.log("Server " + std::to_string(i) + " autoindex: ", config.servers[i].is_autoindex ? "true" : "false");
-        logger.log("Server " + std::to_string(i) + " max body size: ", std::to_string(config.servers[i].max_body_size));
-        for (size_t j = 0; j < config.servers[i].locations.size(); j++) {
-            logger.log("Location " + std::to_string(j) + " path: ", config.servers[i].locations[j].path);
-            logger.log("Location " + std::to_string(j) + " root: ", config.servers[i].locations[j].root);
-            logger.log("Location " + std::to_string(j) + " index: ", config.servers[i].locations[j].index);
-            logger.log("Location " + std::to_string(j) + " autoindex: ",
-                       config.servers[i].locations[j].is_autoindex ? "true" : "false");
-            logger.log("Location " + std::to_string(j) + " max body size: ",
-                       std::to_string(config.servers[i].locations[j].max_body_size));
-        }
-    }
-}
+Logger g_logger("webserv.log");
 
 int main(int argc, char **argv) {
     if (argc == 1)
@@ -43,16 +22,13 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    Logger logger("webserv.log");
-    logger.log("Logger is Enabled");
+    g_logger.log(INFO, "Logger is Enabled");
 
     t_config config = parse_conf(argv[1]);
-    logger.log("Config file parsed successfully");
-
-    logServerDetails(logger, config);
+    g_logger.log(INFO, "Config file parsed successfully");
 
     Server server(config);
-	server.start();
+    server.runServer();
 
     return EXIT_SUCCESS;
 }

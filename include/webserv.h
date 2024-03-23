@@ -1,17 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.cpp                                         :+:      :+:    :+:   */
+/*   webserv.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/22 18:03:23 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 17:22:39 by maroy            ###   ########.fr       */
+/*   Created: 2024/03/23 17:55:02 by maroy             #+#    #+#             */
+/*   Updated: 2024/03/23 19:31:00 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
+#ifndef WEBSERV_H
+# define WEBSERV_H
 
-Client::Client(std::string ip_address) : _ip_address(ip_address) {}
+# include "defines.h"
+# include "Logger.hpp"
+# include "parsing.hpp"
+# include "Client.hpp"
+# include "Server.hpp"
+# include "AcceptorSockets.hpp"
 
-Client::~Client(void) {}
+extern Logger g_logger;
+
+#endif // WEBSERV_H

@@ -3,23 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   defines.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 17:38:22 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/23 18:10:41 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DEFINES_H
-# define DEFINES_H
+#define DEFINES_H
 
-#include <iostream>
-#include <fstream>
-#include <unistd.h> // for close
-#include <cerrno>	// for errno
-#include <cstring> // for strerror
+#include <cerrno>  // for errno
 #include <cstdlib>
+#include <cstring>  // for strerror
+#include <fstream>
+#include <iostream>
 #include <string>
+#include <unistd.h>  // for close
 
 /**********/
 /* Colors */
@@ -60,8 +60,11 @@
 #define PAYMENT_REQUIRED_STATUS 402
 #define FORBIDDEN_STATUS 403
 #define NOT_FOUND_STATUS 404
-#define IM_A_TEAPOT_STATUS 418			 // april fools joke from 1998 lol
-#define INTERNAL_SERVER_ERROR_STATUS 500 // segfault
+#define IM_A_TEAPOT_STATUS 418            // april fools joke from 1998 lol
+#define INTERNAL_SERVER_ERROR_STATUS 500  // segfault
+#define NOT_IMPLEMENTED_STATUS 501
+#define BAD_GATEWAY_STATUS 502
+#define SERVICE_UNAVAILABLE_STATUS 503
 
 /******************/
 /* Error Messages */
@@ -72,12 +75,14 @@
 #define ERR_MSG_EMPTY(arg) ERR_PREFIX << std::string(arg) + " is empty" << RESET_NL
 #define ERR_MSG_BRACKETS ERR_PREFIX << "Brackets are not balanced" << RESET_NL
 #define ERR_MSG_SERVER_BLOCK_MISSING ERR_PREFIX << "server block is missing" << RESET_NL
-#define ERR_MSG_UNEXPECTED_TOKEN(arg) ERR_PREFIX << "Unexpected token before the " + std::string(arg) + " block" << RESET_NL
+#define ERR_MSG_UNEXPECTED_TOKEN(arg) \
+    ERR_PREFIX << "Unexpected token before the " + std::string(arg) + " block" << RESET_NL
 #define ERR_MSG_MISSING_SEMICOLON ERR_PREFIX << "Expected ';' at the end of declaration" << RESET_NL
 #define ERR_MSG_MISSING_EQUAL ERR_PREFIX << "Expected '=' after directive " << RESET_NL
 #define ERR_MSG_INVALID_LOCATION ERR_PREFIX << "Invalid location block" << RESET_NL
 #define ERR_MSG_NO_LOCATION_PATH ERR_PREFIX << "No path for location" << RESET_NL
 #define ERR_MSG_NO_VALUE(arg) ERR_PREFIX << "No value for " + std::string(arg) << RESET_NL
-#define ERR_MSG_INVALID_VALUE(arg, value) ERR_PREFIX << "Invalid value for " + std::string(arg) + ": " + std::string(value) << RESET_NL
+#define ERR_MSG_INVALID_VALUE(arg, value) \
+    ERR_PREFIX << "Invalid value for " + std::string(arg) + ": " + std::string(value) << RESET_NL
 #define ERR_MSG_INVALID_DIRECTIVE(arg) ERR_PREFIX << "Invalid directive: " + std::string(arg) << RESET_NL
-#endif // DEFINES_H
+#endif  // DEFINES_H

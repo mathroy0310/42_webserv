@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/05 03:10:40 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/23 17:39:49 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,9 +64,10 @@ typedef struct s_config {
 t_config parse_conf(const char *file);
 
 /******************/
-/* parse_conf.cpp */
+/* parse_conf_utils.cpp */
 /******************/
 
+bool are_brackets_balanced(const std::string &str);
 std::string remove_comments(const std::string &line);
 bool can_read_file(const std::string filename, const std::ifstream &file);
 bool is_empty_file(const std::string &result, const std::string &file);
@@ -79,10 +80,9 @@ std::string process_file(std::ifstream &file);
 t_server parse_server_block(std::string line);
 
 /*******************/
-/* parse_utils.cpp */
+/* trim.cpp */
 /*******************/
 
-bool are_brackets_balanced(const std::string &str);
 std::string trim(const std::string &str);
 
 /***********************/
