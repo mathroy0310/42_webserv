@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:27:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 19:45:42 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/23 01:33:56 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#define PORT "8082"
+#define PORT "8081"
 #define BACKLOG 2
 
 # include "defines.h"
