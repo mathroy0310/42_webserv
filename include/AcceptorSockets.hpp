@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 17:29:54 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 19:32:30 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/25 17:31:25 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class AcceptorSockets {
 
     void run(void);
     int accept_socket(void);
+    void remove_client(int client_fd);
 
     // getters
     int getSocketFd(void) const;

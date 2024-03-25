@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:47:59 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/23 19:47:44 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/25 17:31:12 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,15 @@ Server::~Server(void) {}
 void Server::runServer(void) {
     g_logger.log(INFO, "Server starting...");
     this->setupServerConnections();
-    g_logger.log(INFO, "Server connections set up");
-    this->acceptConnections();
+    g_logger.log(INFO, "Server connections setting up...");
+    try {
+        this->acceptConnections();
+    } catch (std::exception &e) {
+        g_logger.log(ERROR, "Exception caught: %s", e.what());
+        this->close_all_sockets();
+        exit(EXIT_FAILURE);
+    }
+    g_logger.log(INFO, "Server running!");
 }
 
 void Server::setupServerConnections(void) {
@@ -32,27 +39,21 @@ void Server::setupServerConnections(void) {
         AcceptorSockets acceptor(addr, this->_config.servers[i].port, 128);
         acceptor.run();
         int socket_fd = acceptor.getSocketFd();
-        this->_acceptor_sockets.insert(std::pair<int, AcceptorSockets>(socket_fd, acceptor));
+        this->_acceptor_sockets.emplace(socket_fd, acceptor);
         g_logger.log(DEBUG, "Server socket set up on address %s and port %d",
                      this->_config.servers[i].ip_address.c_str(), this->_config.servers[i].port);
     }
 }
 
 void Server::acceptConnections() {
-    std::map<int, AcceptorSockets>::iterator it = this->_acceptor_sockets.begin();
+    std::map<int, AcceptorSockets>::iterator it;
     std::map<int, AcceptorSockets>::iterator ite = this->_acceptor_sockets.end();
+
+    std::map<int, AcceptorSockets *>::iterator it2;
+    std::map<int, AcceptorSockets *>::iterator it2e = this->_clients_fd_container.end();
 
     while (true) {
         std::vector<pollfd> input_event_container;
-
-        size_t i = 0;
-        // client fd to poll set
-        for (; i < clients_fd_container.size(); i++) {
-            pollfd tmp;
-            tmp.fd = clients_fd_container[i];
-            tmp.events = POLLIN;
-            input_event_container.push_back(tmp);
-        }
 
         // server fd to poll set
         for (it = this->_acceptor_sockets.begin(); it != ite; ++it) {
@@ -60,7 +61,13 @@ void Server::acceptConnections() {
             tmp.fd = it->first;
             tmp.events = POLLIN;
             input_event_container.push_back(tmp);
-            ++i;
+        }
+        // client fd to poll set
+        for (it2 = this->_clients_fd_container.begin(); it2 != it2e; ++it2) {
+            pollfd tmp;
+            tmp.fd = it2->first;
+            tmp.events = POLLIN;
+            input_event_container.push_back(tmp);
         }
 
         errno = 0;
@@ -68,26 +75,29 @@ void Server::acceptConnections() {
         if (result == -1) {
             if (errno == EINTR)
                 continue;
-            g_logger.log(ERROR, "poll() failed");
-            exit(EXIT_FAILURE);
+            throw std::runtime_error("poll() failed");
         }
 
         // Check for new client connections
-        for (it = this->_acceptor_sockets.begin(); it != ite; ++it) {
-            int serverFD = it->first;
-            AcceptorSockets &acceptor = it->second;
-
-            for (size_t k = 0; k < input_event_container.size(); k++) {
-                if (input_event_container[k].fd == serverFD && input_event_container[k].revents & POLLIN) {
-                    int new_client = acceptor.accept_socket();
-                    if (new_client == -1 || new_client == SERVICE_UNAVAILABLE_STATUS)
-                        continue;
-                    clients_fd_container.push_back(new_client);
-                }
+        for (size_t i = 0; i < this->_acceptor_sockets.size(); i++) {
+            if (input_event_container[i].events & POLLIN) {
+                std::map<int, AcceptorSockets>::iterator it = this->_acceptor_sockets.begin();
+                std::advance(it, i);
+                g_logger.log(INFO, "New client connection on server");
+                int new_client_fd = it->second.accept_socket();
+                if (new_client_fd == -1 || new_client_fd == SERVICE_UNAVAILABLE_STATUS)
+                    continue;
+                this->_clients_fd_container.insert(std::pair<int, AcceptorSockets *>(new_client_fd, &(it->second)));
             }
         }
         // Handle client connections
-        for (size_t j = 0; j < input_event_container.size() - _acceptor_sockets.size(); j++) {
+        for (size_t j = this->_acceptor_sockets.size(); j < input_event_container.size(); j++) {
+            if (input_event_container[j].revents & POLLHUP) {
+                g_logger.log(DEBUG, "Client [%d] disconnected", input_event_container[j].fd);
+                this->clientDisconnected(input_event_container[j].fd);
+                continue;
+            }
+
             if (input_event_container[j].revents & POLLIN) {
                 read_socket(input_event_container[j].fd);
             }
@@ -95,21 +105,25 @@ void Server::acceptConnections() {
     }
 }
 
+void Server::clientDisconnected(int client_fd) {
+   std::map<int, AcceptorSockets*>::iterator it = this->_clients_fd_container.find(client_fd);
+	if (it != this->_clients_fd_container.end()) {
+		it->second->remove_client(client_fd);
+		this->_clients_fd_container.erase(client_fd);
+	}
+	close(client_fd);
+}
+
 void Server::read_socket(int client_fd) {
     char buffer[1024] = {0};
-    int valread = read(client_fd, buffer, sizeof(buffer));
+    int valread = recv(client_fd, buffer, sizeof(buffer), MSG_DONTWAIT);
     if (valread == -1) {
-        g_logger.log(ERROR, "read() failed");
-        exit(EXIT_FAILURE);
-    }
-    if (valread == 0) {
-        for (std::vector<int>::iterator it = this->clients_fd_container.begin(); it != this->clients_fd_container.end();
-             it++) {
-            if (*it == client_fd) {
-                this->clients_fd_container.erase(it);
-                break;
-            }
-        }
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return;
+        throw std::runtime_error("recv() failed");
+    } else if (valread == 0) {
+        g_logger.log(DEBUG, "Client [%d] disconnected", client_fd);
+        this->_clients_fd_container.erase(client_fd);
         close(client_fd);
     } else {
         g_logger.log(DEBUG, "Received message from client %d: %s", client_fd - 5, buffer);
@@ -120,4 +134,16 @@ void Server::read_socket(int client_fd) {
 void Server::write_socket(int client_fd) {
     std::string response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello, World!";
     send(client_fd, response.c_str(), response.length(), 0);
+}
+
+void Server::close_all_sockets(void) {
+    for (std::map<int, AcceptorSockets *>::iterator it = this->_clients_fd_container.begin();
+         it != this->_clients_fd_container.end(); it++)
+        close(it->first);
+    this->_clients_fd_container.clear();
+    for (std::map<int, AcceptorSockets>::iterator it = this->_acceptor_sockets.begin();
+         it != this->_acceptor_sockets.end(); it++) {
+        close(it->first);
+    }
+    this->_acceptor_sockets.clear();
 }

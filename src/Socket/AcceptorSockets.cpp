@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 17:29:34 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 19:30:53 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/25 17:31:20 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,8 @@ void AcceptorSockets::run(void) {
 
 void AcceptorSockets::create_socket(void) {
     _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_socket_fd < 0) {
-        std::cerr << "Socket Creation Failed `socket()'" << FILE_LINE;
-        exit(EXIT_FAILURE);
+    if (_socket_fd == -1) {
+        throw std::runtime_error("Socket Creation Failed `socket()'");
     }
 }
 
@@ -40,32 +39,26 @@ void AcceptorSockets::bind_socket(void) {
     this->_addr.sin_addr.s_addr = this->_host.s_addr;
     int opt = 1;
     if (setsockopt(this->_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) == -1) {
-        std::cerr << ERR_PREFIX "Socket Option Failed `setsockopt()'" << FILE_LINE;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Socket Option Failed `setsockopt()'");
     }
     if (bind(this->_socket_fd, (struct sockaddr *)&this->_addr, sizeof(_addr)) == -1) {
-        std::cerr << ERR_PREFIX "Socket Binding Failed `bind()': " << strerror(errno) << '\n' << FILE_LINE;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Socket Binding Failed `bind()': " + std::string(strerror(errno)));
     }
     if (fcntl(this->_socket_fd, F_SETFL, O_NONBLOCK) == -1) {
-        std::cerr << ERR_PREFIX "Socket Non-Blocking Failed `fcntl()'\n" << FILE_LINE;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Socket Non-Blocking Failed `fcntl()'");
     }
 }
 
 void AcceptorSockets::listen_socket(void) {
     if (listen(this->_socket_fd, this->_max_clients) == -1) {
-        std::cerr << ERR_PREFIX "Socket Listening Failed `listen()'\n" << FILE_LINE;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Socket Listening Failed `listen()'");
     }
 }
 
 int AcceptorSockets::accept_socket(void) {
     int new_client_fd = accept(this->_socket_fd, (struct sockaddr *)&this->_addr, &this->_addr_len);
-    if (new_client_fd < 0) {
-        close(new_client_fd);
-        std::cerr << ERR_PREFIX "Socket Accept Failed `accept()'\n" << FILE_LINE;
-        exit(EXIT_FAILURE);
+    if (new_client_fd == -1) {
+		return (-1);
     }
     if (!this->check_max_clients()) {
         close(new_client_fd);
@@ -78,19 +71,30 @@ int AcceptorSockets::accept_socket(void) {
 bool AcceptorSockets::check_max_clients(void) {
     if (this->_max_clients <= this->_clients_fd.size()) {
         std::cerr << ERR_PREFIX "Max clients reached\n" << FILE_LINE;
-        return false;
+        return (false);
     }
-    return true;
+    return (true);
+}
+
+void AcceptorSockets::remove_client(int client_fd) {
+    std::vector<int>::iterator it = this->_clients_fd.begin();
+    while (it != this->_clients_fd.end()) {
+        if (*it == client_fd) {
+            this->_clients_fd.erase(it);
+            break;
+        }
+        it++;
+    }
 }
 
 int AcceptorSockets::getSocketFd(void) const {
-    return this->_socket_fd;
+    return (this->_socket_fd);
 }
 
 struct sockaddr_in AcceptorSockets::getSocketAddr(void) const {
-    return this->_addr;
+    return (this->_addr);
 }
 
 socklen_t AcceptorSockets::getAddrLen(void) const {
-    return this->_addr_len;
+    return (this->_addr_len);
 }

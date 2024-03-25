@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/23 19:44:02 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/25 17:22:52 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,12 +33,14 @@ class Server {
     // Attributes
     const t_config _config;
     std::map<int, AcceptorSockets> _acceptor_sockets;
-    std::vector<int> clients_fd_container;
+    std::map<int, AcceptorSockets *> _clients_fd_container;
 
     void setupServerConnections(void);
     void acceptConnections(void);
+    void clientDisconnected(int client_fd);
     void read_socket(int client_fd);
     void write_socket(int client_fd);
+    void close_all_sockets(void);
 };
 
 #endif  // SERVER_HPP
