@@ -1,41 +1,48 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   AcceptorSockets.hpp                                :+:      :+:    :+:   */
+/*   SocketWrapper.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 17:29:54 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/25 17:31:25 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/26 17:37:54 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef ACCEPTORSOCKETS_HPP
-#define ACCEPTORSOCKETS_HPP
+#ifndef SOCKETWRAPPER_HPP
+#define SOCKETWRAPPER_HPP
 
 #include "webserv.h"
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <stdexcept>
+
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <fcntl.h>
 
-class AcceptorSockets {
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+
+class SocketWrapper {
   public:
-    AcceptorSockets(in_addr host, int port, int max_clients);
-    ~AcceptorSockets(void);
+    // Constructors and destructors
+    SocketWrapper(const std::string host, const int port, const int max_clients);
+    ~SocketWrapper(void);
 
-    void run(void);
-    int accept_socket(void);
-    void remove_client(int client_fd);
+    // Methods
+    void init(void);
+    int acceptSocket(void);
+    void removeClient(int fd);
 
-    // getters
+    // Getters
     int getSocketFd(void) const;
+    int getPort(void) const;
     struct sockaddr_in getSocketAddr(void) const;
     socklen_t getAddrLen(void) const;
 
   private:
+    // Attributes
     int _socket_fd;
     int _listen_port;
     in_addr _host;
@@ -44,10 +51,11 @@ class AcceptorSockets {
     size_t _max_clients;
     std::vector<int> _clients_fd;
 
-    void create_socket(void);
-    void bind_socket(void);
-    void listen_socket(void);
-    bool check_max_clients(void);
+    // Methods
+    void createSocket(void);
+    void bindSocket(void);
+    void listenSocket(void);
+    bool checkMaxClients(void);
 };
 
-#endif  // ACCEPTORSOCKETS_HPP
+#endif  // SOCKETWRAPPER_HPP

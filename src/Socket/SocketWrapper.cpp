@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   AcceptorSockets.cpp                                :+:      :+:    :+:   */
+/*   SocketWrapper.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,30 +10,30 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "AcceptorSockets.hpp"
+#include "classes/SocketWrapper.hpp"
 
-AcceptorSockets::AcceptorSockets(in_addr host, int port, int max_clients) {
+SocketWrapper::SocketWrapper(const std::string host, const int port, const int max_clients) {
+    this->_host.s_addr = inet_addr(host.c_str());
     this->_listen_port = port;
-    this->_host = host;
     this->_max_clients = max_clients;
     this->_addr_len = sizeof(this->_addr);
 }
-AcceptorSockets::~AcceptorSockets(void) {}
+SocketWrapper::~SocketWrapper(void) {}
 
-void AcceptorSockets::run(void) {
-    this->create_socket();
-    this->bind_socket();
-    this->listen_socket();
+void SocketWrapper::init(void) {
+    this->createSocket();
+    this->bindSocket();
+    this->listenSocket();
 }
 
-void AcceptorSockets::create_socket(void) {
-    _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+void SocketWrapper::createSocket(void) {
+    this->_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (_socket_fd == -1) {
         throw std::runtime_error("Socket Creation Failed `socket()'");
     }
 }
 
-void AcceptorSockets::bind_socket(void) {
+void SocketWrapper::bindSocket(void) {
     this->_addr.sin_family = AF_INET;
     this->_addr.sin_port = htons(this->_listen_port);
     this->_addr.sin_addr.s_addr = this->_host.s_addr;
@@ -49,18 +49,19 @@ void AcceptorSockets::bind_socket(void) {
     }
 }
 
-void AcceptorSockets::listen_socket(void) {
+void SocketWrapper::listenSocket(void) {
     if (listen(this->_socket_fd, this->_max_clients) == -1) {
         throw std::runtime_error("Socket Listening Failed `listen()'");
     }
 }
 
-int AcceptorSockets::accept_socket(void) {
+int SocketWrapper::acceptSocket(void) {
     int new_client_fd = accept(this->_socket_fd, (struct sockaddr *)&this->_addr, &this->_addr_len);
     if (new_client_fd == -1) {
+        g_logger.log(ERROR, "Socket Accept Failed `accept()'");
 		return (-1);
     }
-    if (!this->check_max_clients()) {
+    if (!this->checkMaxClients()) {
         close(new_client_fd);
         return (SERVICE_UNAVAILABLE_STATUS);
     }
@@ -68,7 +69,7 @@ int AcceptorSockets::accept_socket(void) {
     return (new_client_fd);
 }
 
-bool AcceptorSockets::check_max_clients(void) {
+bool SocketWrapper::checkMaxClients(void) {
     if (this->_max_clients <= this->_clients_fd.size()) {
         std::cerr << ERR_PREFIX "Max clients reached\n" << FILE_LINE;
         return (false);
@@ -76,7 +77,7 @@ bool AcceptorSockets::check_max_clients(void) {
     return (true);
 }
 
-void AcceptorSockets::remove_client(int client_fd) {
+void SocketWrapper::removeClient(int client_fd) {
     std::vector<int>::iterator it = this->_clients_fd.begin();
     while (it != this->_clients_fd.end()) {
         if (*it == client_fd) {
@@ -87,14 +88,14 @@ void AcceptorSockets::remove_client(int client_fd) {
     }
 }
 
-int AcceptorSockets::getSocketFd(void) const {
-    return (this->_socket_fd);
-}
-
-struct sockaddr_in AcceptorSockets::getSocketAddr(void) const {
+struct sockaddr_in SocketWrapper::getSocketAddr(void) const {
     return (this->_addr);
 }
 
-socklen_t AcceptorSockets::getAddrLen(void) const {
-    return (this->_addr_len);
+int SocketWrapper::getSocketFd(void) const {
+    return (this->_socket_fd);
+}
+
+int SocketWrapper::getPort(void) const {
+    return (this->_listen_port);
 }

@@ -6,29 +6,39 @@
 /*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 18:03:36 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/22 18:28:53 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/26 00:39:23 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CLIENT_HPP
-# define CLIENT_HPP
+#pragma once
 
-# include "defines.h"
-# include "parsing.hpp"
+#define BUFFER_SIZE 1024
 
-class Client
-{
-	public:
+#include "webserv.h"
 
-		Client(std::string ip_address);
-		~Client(void);
+class Client {
+public:
+	// Constructors & Destructors
+	Client(int socket_fd);
+	~Client(void);
 
-	private:
+	// Methods
+	void readRequest(void);
+	void writeResponse(void);
+	bool hasPendingOperations(void) const;
+	void disconnect(void);
+	
+	// Getters
+	int getSocketFd(void) const;
+	
+private:
+	// Attributes
+	int _socket_fd;
+	std::string _request_buffer;
+	std::string _response_buffer;
+	bool _is_writing;
 
-		std::string _ip_address;
-		// const int 		_port;
-		// const int 		_socket_fd;
-
+	// Methods
+	// void parseRequest(void);
+	void handleRequest(void);
 };
-
-#endif // CLIENT_HPP

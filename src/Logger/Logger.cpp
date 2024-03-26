@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 18:05:21 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/25 20:40:21 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Logger.hpp"
+#include "classes/Logger.hpp"
 
 Logger::Logger(std::string log_file, e_logState state, e_logType type)
     : _log_filename(log_file), _log_state(state), _log_type(type) {

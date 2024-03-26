@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: maroy <maroy@student.42.fr>                +#+  +:+       +#+         #
+#    By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/15 14:01:52 by maroy             #+#    #+#              #
-#    Updated: 2024/03/23 01:15:51 by maroy            ###   ########.fr        #
+#    Updated: 2024/03/26 01:14:38 by rmarceau         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,7 @@ $(NAME): $(OBJS)
 
 clean:
 	@rm -rf $(OBJ_DIR)
-	@echo	"$(YELLOW)Obejct files deleted!$(DEFAULT)"
+	@echo	"$(YELLOW)Object files deleted!$(DEFAULT)"
 
 fclean: clean
 	@rm -rf $(NAME)
