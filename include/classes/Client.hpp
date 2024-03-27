@@ -6,7 +6,7 @@
 /*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 18:03:36 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/26 00:39:23 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/27 16:09:18 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 #define BUFFER_SIZE 1024
 
 #include "webserv.h"
+
+class HTTPRequest;
+class HTTPResponse;
 
 class Client {
 public:
@@ -34,11 +37,10 @@ public:
 private:
 	// Attributes
 	int _socket_fd;
-	std::string _request_buffer;
-	std::string _response_buffer;
 	bool _is_writing;
+	HTTPRequest *_request;
+	HTTPResponse *_response;
 
 	// Methods
-	// void parseRequest(void);
-	void handleRequest(void);
+	void processRequest(void);
 };

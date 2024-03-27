@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:47:59 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/27 15:13:00 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/27 17:12:53 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,9 @@ void Server::setupServerConnections(void) {
     for (size_t i = 0; i < this->_config.servers.size(); i++) {
         std::string ip_address = this->_config.servers[i].ip_address;
         int port = this->_config.servers[i].port;
+        int max_clients = this->_config.servers[i].max_client_size;
         
-		g_logger.log(DEBUG, "max_client size: %d", this->_config.servers[i].max_client_size);
-        SocketWrapper new_socket(ip_address, port, this->_config.servers[i].max_client_size);
+        SocketWrapper new_socket(ip_address, port, max_clients);
         new_socket.init();
         this->_multiplexer->addFd(new_socket.getSocketFd(), POLLIN);
         this->_listening_sockets.emplace(new_socket.getSocketFd(), new_socket);
@@ -80,7 +80,7 @@ void Server::acceptConnections() {
                 continue;
             }
             this->_multiplexer->addFd(new_client, POLLIN);
-            this->_clients.push_back(Client(new_client));
+            this->_clients.push_back(Client(new_client)); 
         }
     }
 }
