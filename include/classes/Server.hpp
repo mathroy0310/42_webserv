@@ -3,17 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/26 17:24:37 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/27 15:15:01 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
-
-#define MAX_CLIENTS SOMAXCONN
 
 #include "webserv.h"
 

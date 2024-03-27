@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 20:48:46 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/05 03:28:14 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/27 15:06:16 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,4 +149,17 @@ void set_error_pages(std::string &value, const std::string &key, std::map<unsign
         // std::cout << " | Value : " << error_value << std::endl;
         error_pages[std::stoi(error_index.c_str())] = error_value;
     }
+}
+
+size_t set_max_client_size(std::string &value, const std::string &key) {
+    if (value.empty() || value == ";") {
+        std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    if (value.find_first_not_of("0123456789") != value.npos) {
+        std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+        exit(EXIT_FAILURE);
+    }
+    size_t max_client_size = std::stoi(value);
+    return (max_client_size);
 }

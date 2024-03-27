@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:47:59 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/26 17:23:20 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/27 15:13:00 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,8 @@ void Server::setupServerConnections(void) {
         std::string ip_address = this->_config.servers[i].ip_address;
         int port = this->_config.servers[i].port;
         
-        SocketWrapper new_socket(ip_address, port, MAX_CLIENTS);
+		g_logger.log(DEBUG, "max_client size: %d", this->_config.servers[i].max_client_size);
+        SocketWrapper new_socket(ip_address, port, this->_config.servers[i].max_client_size);
         new_socket.init();
         this->_multiplexer->addFd(new_socket.getSocketFd(), POLLIN);
         this->_listening_sockets.emplace(new_socket.getSocketFd(), new_socket);

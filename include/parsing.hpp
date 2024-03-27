@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/23 17:39:49 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/27 15:15:58 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ typedef struct s_server {
     std::string ip_address;
     bool is_autoindex;
     size_t max_body_size;
+    size_t max_client_size = MAX_CLIENTS;
     std::string server_name;
     std::string root;
     std::string index;
@@ -101,5 +102,6 @@ std::string set_root(std::string &value, const std::string &key);
 std::string set_server_name(std::string &value, const std::string &key);
 int set_port_and_ip_address(std::string &value, const std::string &key, std::string &ip_address);
 void set_error_pages(std::string &value, const std::string &key, std::map<unsigned int, std::string> &error_pages);
+size_t set_max_client_size(std::string &value, const std::string &key);
 
 #endif  // PARSING_HPP
