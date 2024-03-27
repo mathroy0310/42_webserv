@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/27 16:05:07 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/27 18:47:39 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ std::string HTTPResponse::serialize(void) const {
     }
     response += "\r\n";
     response += this->_body;
-    return response;
+    return (response);
 }
 
 void HTTPResponse::setVersion(const std::string &version) {
@@ -49,21 +49,21 @@ void HTTPResponse::setBody(const std::string &body) {
 }
 
 std::string HTTPResponse::getVersion(void) const {
-    return this->_version;
+    return (this->_version);
 }
 
 std::string HTTPResponse::getStatusCode(void) const {
-    return this->_status_code;
+    return (this->_status_code);
 }
 
 std::string HTTPResponse::getStatusMessage(void) const {
-    return this->_status_message;
+    return (this->_status_message);
 }
 
 std::map<std::string, std::string> HTTPResponse::getHeaders(void) const {
-    return this->_headers;
+    return (this->_headers);
 }
 
 std::string HTTPResponse::getBody(void) const {
-    return this->_body;
+    return (this->_body);
 }

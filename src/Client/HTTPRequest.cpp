@@ -3,14 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:39 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/27 14:34:52 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/27 19:39:07 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "classes/HTTPRequest.hpp"
+#include <fstream>
+#include <sstream>
 
 HTTPRequest::HTTPRequest(void) {}
 
@@ -24,7 +26,7 @@ HTTPRequest &HTTPRequest::operator=(HTTPRequest const &rhs) {
     this->_version = rhs._version;
     this->_headers = rhs._headers;
     this->_body = rhs._body;
-    return *this;
+    return (*this);
 }
 
 void HTTPRequest::parse(const std::string &raw_request) {
@@ -54,23 +56,23 @@ void HTTPRequest::clear(void) {
 }
 
 std::string HTTPRequest::getMethod(void) const {
-    return this->_method;
+    return (this->_method);
 }
 
 std::string HTTPRequest::getURI(void) const {
-    return this->_uri;
+    return (this->_uri);
 }
 
 std::string HTTPRequest::getVersion(void) const {
-    return this->_version;
+    return (this->_version);
 }
 
 std::map<std::string, std::string> HTTPRequest::getHeaders(void) const {
-    return this->_headers;
+    return (this->_headers);
 }
 
 std::string HTTPRequest::getBody(void) const {
-    return this->_body;
+    return (this->_body);
 }
 
 void HTTPRequest::parseRequestLine(const std::string &line) {
@@ -91,5 +93,15 @@ void HTTPRequest::parseHeaders(const std::string &line) {
 }
 
 void HTTPRequest::parseBody(const std::string &line) {
-    this->_body = line;
+    (void)line;
+    std::string body("./www/index.html");
+
+    std::ifstream file(body);
+    if (!file.is_open())
+        throw std::runtime_error("Could not open file");
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+
+    this->_body = buffer.str();
 }

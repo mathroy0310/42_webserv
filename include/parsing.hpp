@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 15:15:58 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/27 19:21:40 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,6 @@
 #pragma once
 
 #include "defines.h"
-#include <algorithm>
-#include <iosfwd>
-#include <iostream>
-#include <map>
-#include <sstream>
-#include <stack>
-#include <string>
-#include <vector>
 
 /*********************/
 /* directives Struct */

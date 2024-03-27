@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/25 20:40:21 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/27 18:05:28 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ void Logger::log(e_logLevel level, const char *format, ...) {
     va_end(args);
 
     std::string log_message = this->_get_curr_time() + "[" + log_level + "]\t" + message;
-    std::string log_tty_message = log_color + "[" + log_level + "]\t" + RESET_COLOR + message;
+    std::string log_tty_message = this->_get_curr_time() + log_color + "[" + log_level + "]\t" + RESET_COLOR + message;
 
     if (this->_log_state == ENABLED) {
         if (this->_log_type == CONSOLE || this->_log_type == BOTH)

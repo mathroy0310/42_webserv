@@ -6,22 +6,28 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 15:16:20 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/27 19:38:35 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include <algorithm>
 #include <arpa/inet.h>
 #include <cerrno>  // for errno
 #include <cstdlib>
 #include <cstring>  // for strerror
 #include <fstream>
+#include <iosfwd>
 #include <iostream>
+#include <map>
 #include <netinet/in.h>
+#include <sstream>
+#include <stack>
 #include <string>
 #include <unistd.h>  // for close
+#include <vector>
 
 /***********/
 /*  Macros */
