@@ -71,7 +71,7 @@ int SocketWrapper::acceptSocket(void) {
 
 bool SocketWrapper::checkMaxClients(void) {
     if (this->_max_clients <= this->_clients_fd.size()) {
-        std::cerr << ERR_PREFIX "Max clients reached\n" << FILE_LINE;
+        std::cerr << WARN_PREFIX "Max clients reached\n" << FILE_LINE;
         return (false);
     }
     return (true);
