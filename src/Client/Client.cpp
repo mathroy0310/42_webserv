@@ -6,11 +6,11 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 18:03:23 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 12:29:56 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 13:06:20 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "classes/Client.hpp"
+#include "Client.hpp"
 
 Client::Client(int socket_fd) : _socket_fd(socket_fd), _is_writing(false) {}
 
@@ -34,10 +34,10 @@ void Client::readRequest(void) {
     this->_request->parse(buffer_str);
 
 	//g_logger.log(DEBUG, "request : \n%s", buffer_str.c_str());
-	g_logger.log(DEBUG, "Received %ld bytes from client [%d]", bytes_read, this->_socket_fd - 5);
-	g_logger.log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());
-	g_logger.log(DEBUG, "Request Method: %s", this->_request->getMethod().c_str());
-	g_logger.log(DEBUG, "Request Version: %s", this->_request->getVersion().c_str());
+	Logger::get().log(DEBUG, "Received %ld bytes from client [%d]", bytes_read, this->_socket_fd - 5);
+	Logger::get().log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());
+	Logger::get().log(DEBUG, "Request Method: %s", this->_request->getMethod().c_str());
+	Logger::get().log(DEBUG, "Request Version: %s", this->_request->getVersion().c_str());
 	//g_logger.log(DEBUG, "Request Body: %s", this->_request->getBody().c_str());
 
     if (buffer_str.find("\r\n\r\n") != std::string::npos) {
@@ -56,7 +56,7 @@ void Client::writeResponse(void) {
     if (bytes_sent == -1) {
         throw std::runtime_error("Failed to write to socket");
     }
-    g_logger.log(DEBUG, "Sent %ld bytes to client [%d]", bytes_sent, this->_socket_fd - 5);
+    Logger::get().log(DEBUG, "Sent %ld bytes to client [%d]", bytes_sent, this->_socket_fd - 5);
     this->_is_writing = false;
 }
 

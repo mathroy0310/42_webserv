@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   SocketWrapper.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 17:29:54 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/26 17:37:54 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/28 13:07:49 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SOCKETWRAPPER_HPP
 #define SOCKETWRAPPER_HPP
 
-#include "webserv.h"
+#include "defines.h"
 
 #include <sys/socket.h>
 #include <arpa/inet.h>

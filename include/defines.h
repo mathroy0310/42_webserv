@@ -6,12 +6,13 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 19:38:35 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 13:08:33 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DEFINES_H
 #define DEFINES_H
+
 
 #include <algorithm>
 #include <arpa/inet.h>
@@ -28,6 +29,7 @@
 #include <string>
 #include <unistd.h>  // for close
 #include <vector>
+#include "Logger/Logger.hpp"
 
 /***********/
 /*  Macros */

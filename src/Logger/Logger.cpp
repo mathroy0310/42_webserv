@@ -6,11 +6,11 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 18:05:28 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 13:03:26 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "classes/Logger.hpp"
+#include "Logger.hpp"
 
 Logger::Logger(std::string log_file, e_logState state, e_logType type)
     : _log_filename(log_file), _log_state(state), _log_type(type) {
@@ -21,6 +21,12 @@ Logger::Logger(std::string log_file, e_logState state, e_logType type)
 Logger::~Logger(void) {
     this->_log_file.close();
     return;
+}
+
+Logger& Logger::get(void)
+{
+	static Logger logger("webserv.log");
+	return (logger);
 }
 
 void Logger::log(e_logLevel level, const char *format, ...) {

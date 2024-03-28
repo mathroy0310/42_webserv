@@ -3,16 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/26 16:31:12 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/28 13:11:11 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.h"
-
-Logger g_logger("webserv.log");
+#include "defines.h"
+#include "Server/Server.hpp"
 
 int main(int argc, char **argv) {
     if (argc == 1)
@@ -22,9 +21,9 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    g_logger.log(INFO, "Logger is Enabled");
+    Logger::get().log(INFO, "Logger is Enabled");
     t_config config = parse_conf(argv[1]);
-    g_logger.log(INFO, "Config file parsed successfully");
+    Logger::get().log(INFO, "Config file parsed successfully");
     Server server(config);
     server.run();
     

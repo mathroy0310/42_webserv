@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "classes/SocketWrapper.hpp"
+#include "SocketWrapper.hpp"
 
 SocketWrapper::SocketWrapper(const std::string host, const int port, const int max_clients) {
     this->_host.s_addr = inet_addr(host.c_str());
@@ -53,7 +53,7 @@ void SocketWrapper::listenSocket(void) {
 int SocketWrapper::acceptSocket(void) {
     int new_client_fd = accept(this->_socket_fd, (struct sockaddr *)&this->_addr, &this->_addr_len);
     if (new_client_fd == -1) {
-        g_logger.log(ERROR, "Socket Accept Failed `accept()'");
+        Logger::get().log(ERROR, "Socket Accept Failed `accept()'");
 		return (-1);
     }
     if (!this->checkMaxClients()) {

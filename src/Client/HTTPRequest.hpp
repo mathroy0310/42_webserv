@@ -1,48 +1,49 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HTTPResponse.hpp                                   :+:      :+:    :+:   */
+/*   HTTPRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/27 15:52:00 by rmarceau         ###   ########.fr       */
+/*   Created: 2024/03/25 19:51:11 by rmarceau          #+#    #+#             */
+/*   Updated: 2024/03/28 13:08:42 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <string>
-#include <map>
+#include "defines.h"
 
-class HTTPResponse {
+class HTTPRequest {
 public:
     // Constructors & Destructors
-    HTTPResponse(void);
-    ~HTTPResponse(void);
+    HTTPRequest(void);
+    ~HTTPRequest(void);
+
+    // Operators
+    HTTPRequest &operator=(HTTPRequest const &rhs);
 
     // Methods
-    std::string serialize(void) const;
-
-    // Setters
-    void setVersion(const std::string &version);
-    void setStatusCode(const std::string &status_code);
-    void setStatusMessage(const std::string &reason_phrase);
-    void setHeaders(const std::map<std::string, std::string> &headers);
-    void setBody(const std::string &body);
+    void parse(const std::string &raw_request);
+    void clear(void);
 
     // Getters
+    std::string getMethod(void) const;
+    std::string getURI(void) const;
     std::string getVersion(void) const;
-    std::string getStatusCode(void) const;
-    std::string getStatusMessage(void) const;
     std::map<std::string, std::string> getHeaders(void) const;
     std::string getBody(void) const;
-    
+
 private:
     // Attributes
+    std::string _method;
+    std::string _uri;
     std::string _version;
-    std::string _status_code;
-    std::string _status_message;
     std::map<std::string, std::string> _headers;
     std::string _body;
+
+    // Methods
+    void parseRequestLine(const std::string &line);
+    void parseHeaders(const std::string &line);
+    void parseBody(const std::string &line);
 };

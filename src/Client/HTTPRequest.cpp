@@ -6,11 +6,11 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:39 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/27 19:39:07 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 13:02:27 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "classes/HTTPRequest.hpp"
+#include "HTTPRequest.hpp"
 #include <fstream>
 #include <sstream>
 

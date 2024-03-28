@@ -6,11 +6,11 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 20:46:58 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/28 11:37:29 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 13:07:40 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "classes/Multiplexer.hpp"
+#include "Multiplexer.hpp"
 
 Multiplexer::Multiplexer(void) {}
 

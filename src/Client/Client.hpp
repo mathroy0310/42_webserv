@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 18:03:36 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 16:09:18 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/28 13:08:07 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 
 #define BUFFER_SIZE 1024
 
-#include "webserv.h"
+#include "defines.h"
+#include "HTTPRequest.hpp"
+#include "HTTPResponse.hpp"
 
 class HTTPRequest;
 class HTTPResponse;

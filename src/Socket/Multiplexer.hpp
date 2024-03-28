@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexer.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 20:46:27 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/26 01:12:17 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/03/28 13:07:53 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "webserv.h"
+#include "defines.h"
 
 #include <vector>
 #include <poll.h>
