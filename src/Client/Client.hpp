@@ -1,20 +1,9 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/22 18:03:36 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 13:08:07 by maroy            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #define BUFFER_SIZE 1024
 
 #include "defines.h"
+#include "parsing.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
 
@@ -24,7 +13,7 @@ class HTTPResponse;
 class Client {
 public:
 	// Constructors & Destructors
-	Client(int socket_fd);
+	Client(int socket_fd, t_server server);
 	~Client(void);
 
 	// Methods
@@ -39,10 +28,13 @@ public:
 private:
 	// Attributes
 	int _socket_fd;
+	t_server _server;
 	bool _is_writing;
 	HTTPRequest *_request;
 	HTTPResponse *_response;
 
 	// Methods
 	void processRequest(void);
+	std::string getFilePath(void);
+	void serveFile(const std::string &file_path);
 };

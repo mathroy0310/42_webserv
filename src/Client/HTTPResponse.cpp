@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/28 13:02:36 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 16:05:54 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPResponse.hpp"
 
-HTTPResponse::HTTPResponse(void) {}
+HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
 
 HTTPResponse::~HTTPResponse(void) {}
 
@@ -25,6 +25,7 @@ std::string HTTPResponse::serialize(void) const {
     }
     response += "\r\n";
     response += this->_body;
+	//Logger::get().log(DEBUG, "reponse icitte: \n%s", response.c_str());
     return (response);
 }
 

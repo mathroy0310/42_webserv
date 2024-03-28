@@ -58,7 +58,7 @@ int SocketWrapper::acceptSocket(void) {
     }
     if (!this->checkMaxClients()) {
         close(new_client_fd);
-        return (SERVICE_UNAVAILABLE_STATUS);
+        return (std::stoi(SERVICE_UNAVAILABLE_STATUS));
     }
     this->_clients_fd.push_back(new_client_fd);
     return (new_client_fd);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_servers.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 12:34:49 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 16:07:13 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ static void init(t_server &server) {
     server.port = -1;
     server.server_name = "";
     server.root = "";
-    server.index = "";
+    server.index = "index.html";
 }
 
 t_server parse_server_block(std::string line) {

@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/23 12:47:59 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/28 13:03:40 by maroy            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 
 // Constructors and destructors
@@ -26,12 +14,11 @@ void Server::run(void) {
         this->_running = true;
         this->setupServerConnections();
         Logger::get().log(INFO, "Server connections setting up...");
-        while (this->_running) {
+        while (this->_running)
             if (this->_multiplexer->wait() > 0) {
                 this->acceptConnections();
                 this->handleRequests();
             }
-        }
     } catch (const std::exception &e) {
         Logger::get().log(ERROR, "Server error: %s", e.what());
         this->stop();
@@ -64,7 +51,7 @@ void Server::setupServerConnections(void) {
         SocketWrapper new_socket(ip_address, port, max_clients);
         new_socket.init();
         this->_multiplexer->addFd(new_socket.getSocketFd(), POLLIN);
-        this->_listening_sockets.emplace(new_socket.getSocketFd(), new_socket);
+        this->_listening_sockets.insert(std::make_pair(new_socket.getSocketFd(), new_socket));
         Logger::get().log(DEBUG, "Server socket set up on address %s and port %d", ip_address.c_str(), port);
     }
 }
@@ -72,16 +59,17 @@ void Server::setupServerConnections(void) {
 void Server::acceptConnections() {
     std::map<int, SocketWrapper>::iterator server = this->_listening_sockets.begin();
 
-    for (; server != this->_listening_sockets.end(); server++) {
+    for (int i = 0; server != this->_listening_sockets.end(); server++) {
         if (this->_multiplexer->canRead(server->first)) {
             int new_client = server->second.acceptSocket();
-            Logger::get().log(DEBUG, "New client connection on server on port %d", server->second.getPort());
-            if (new_client == -1 || new_client == SERVICE_UNAVAILABLE_STATUS) {
+            if (new_client == -1 || new_client == std::stoi(SERVICE_UNAVAILABLE_STATUS)) {
                 continue;
             }
+            Logger::get().log(DEBUG, "New client connection [%d] on server on port %d", new_client, server->second.getPort());
             this->_multiplexer->addFd(new_client, POLLIN);
-            this->_clients.push_back(Client(new_client)); 
+            this->_clients.push_back(Client(new_client, this->_config.servers[i]));
         }
+		i++;
     }
 }
 
@@ -97,9 +85,9 @@ void Server::handleRequests(void) {
         if (this->_multiplexer->canWrite(client->getSocketFd())) {
             client->writeResponse();
             if (!client->hasPendingOperations()) {
-                client->disconnect();
                 this->_multiplexer->removeFd(client->getSocketFd());
-                Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() - 5);
+                Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() - 4);
+                client->disconnect();
             }
         }
         client++;
