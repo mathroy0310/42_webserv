@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 18:03:23 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 19:16:12 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 12:29:56 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ void Client::readRequest(void) {
     this->_request = new HTTPRequest();
     this->_request->parse(buffer_str);
 
+	//g_logger.log(DEBUG, "request : \n%s", buffer_str.c_str());
 	g_logger.log(DEBUG, "Received %ld bytes from client [%d]", bytes_read, this->_socket_fd - 5);
 	g_logger.log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());
 	g_logger.log(DEBUG, "Request Method: %s", this->_request->getMethod().c_str());

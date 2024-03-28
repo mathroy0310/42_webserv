@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 15:07:21 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 12:34:49 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ void parse_server_line(std::string line, t_server &server) {
 
 static void init(t_server &server) {
     server.max_body_size = 0;
+	server.max_client_size = MAX_CLIENTS;
     server.is_autoindex = false;
     server.port = -1;
     server.server_name = "";

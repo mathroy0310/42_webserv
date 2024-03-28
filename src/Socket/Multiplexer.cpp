@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 20:46:58 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/27 18:46:03 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 11:37:29 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void Multiplexer::addFd(int fd, short events)
     
     int index = this->findFDIndex(fd);
     if (index != -1) {
-        _fds[index] = pollfd;
+        this->_fds[index] = pollfd;
         return;   
     }
     this->_fds.push_back(pollfd);
@@ -40,16 +40,15 @@ void Multiplexer::removeFd(int fd)
 
 int Multiplexer::wait(int timeout)
 {
-    return poll(this->_fds.data(), this->_fds.size(), timeout);
+    return (poll(this->_fds.data(), this->_fds.size(), timeout));
 }
 
 bool Multiplexer::canRead(int fd) const
 {
     int index = findFDIndex(fd);
-    if (index == -1) {
+    if (index == -1)
         return false;
-    }
-    return this->_fds[index].revents & POLLIN;
+    return (this->_fds[index].revents & POLLIN);
 }
 
 bool Multiplexer::canWrite(int fd) const
@@ -57,15 +56,13 @@ bool Multiplexer::canWrite(int fd) const
     int index = this->findFDIndex(fd);
     if (index == -1)
         return false;
-    return this->_fds[index].revents & POLLOUT;
+    return (this->_fds[index].revents & POLLOUT);
 }
 
 int Multiplexer::findFDIndex(int fd) const
 {
     for (size_t i = 0; i < this->_fds.size(); i++)
-    {
         if (this->_fds[i].fd == fd)
-            return i;
-    }
-    return -1;
+        	return (i);
+    return (-1);
 }

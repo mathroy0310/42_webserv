@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/27 19:21:40 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/28 12:28:57 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ typedef struct s_server {
     std::string ip_address;
     bool is_autoindex;
     size_t max_body_size;
-    size_t max_client_size = MAX_CLIENTS;
+    size_t max_client_size;
     std::string server_name;
     std::string root;
     std::string index;
