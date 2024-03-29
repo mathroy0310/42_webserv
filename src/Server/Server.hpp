@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/28 13:10:30 by maroy            ###   ########.fr       */
+/*   Updated: 2024/03/29 14:32:49 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class Server {
     Multiplexer *_multiplexer;
     std::map<int, SocketWrapper> _listening_sockets;
     std::vector<Client> _clients;
+    size_t _server_count;
     bool _running;
 
     // Methods

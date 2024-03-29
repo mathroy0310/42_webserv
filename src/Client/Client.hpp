@@ -37,4 +37,5 @@ private:
 	void processRequest(void);
 	std::string getFilePath(void);
 	void serveFile(const std::string &file_path);
+	std::string getMimeType(const std::string &file_path);
 };

@@ -47,13 +47,14 @@ void Server::setupServerConnections(void) {
         std::string ip_address = this->_config.servers[i].ip_address;
         int port = this->_config.servers[i].port;
         int max_clients = this->_config.servers[i].max_client_size;
-		Logger::get().log(DEBUG, "Max client size, %d", max_clients);
+
         SocketWrapper new_socket(ip_address, port, max_clients);
         new_socket.init();
         this->_multiplexer->addFd(new_socket.getSocketFd(), POLLIN);
         this->_listening_sockets.insert(std::make_pair(new_socket.getSocketFd(), new_socket));
         Logger::get().log(DEBUG, "Server socket set up on address %s and port %d", ip_address.c_str(), port);
     }
+    this->_server_count = this->_listening_sockets.size() + 3;
 }
 
 void Server::acceptConnections() {
@@ -65,7 +66,7 @@ void Server::acceptConnections() {
             if (new_client == -1 || new_client == std::stoi(SERVICE_UNAVAILABLE_STATUS)) {
                 continue;
             }
-            Logger::get().log(DEBUG, "New client connection [%d] on server on port %d", new_client, server->second.getPort());
+            Logger::get().log(DEBUG, "New client connection [%d] on server on port %d", (new_client - this->_server_count), server->second.getPort());
             this->_multiplexer->addFd(new_client, POLLIN);
             this->_clients.push_back(Client(new_client, this->_config.servers[i]));
         }
@@ -86,7 +87,7 @@ void Server::handleRequests(void) {
             client->writeResponse();
             if (!client->hasPendingOperations()) {
                 this->_multiplexer->removeFd(client->getSocketFd());
-                Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() - 4);
+                Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() - this->_server_count);
                 client->disconnect();
             }
         }

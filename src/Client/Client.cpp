@@ -24,10 +24,9 @@ void Client::readRequest(void) {
     this->_request->parse(buffer_str);
 
 	//g_logger.log(DEBUG, "request : \n%s", buffer_str.c_str());
-	Logger::get().log(DEBUG, "Received %ld bytes from client [%d]", bytes_read, this->_socket_fd - 4);
+	Logger::get().log(DEBUG, "Received %ld bytes", bytes_read);
 	Logger::get().log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());
 	Logger::get().log(DEBUG, "Request Method: %s", this->_request->getMethod().c_str());
-	Logger::get().log(DEBUG, "Request Version: %s", this->_request->getVersion().c_str());
 	//g_logger.log(DEBUG, "Request Body: %s", this->_request->getBody().c_str());
 
     if (buffer_str.find("\r\n\r\n") != std::string::npos) {
@@ -41,12 +40,12 @@ void Client::writeResponse(void) {
         return;
     }
 	std::string response_buffer = this->_response->serialize();
-	//std::string response_buffer = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello World!";
     ssize_t bytes_sent = send(this->_socket_fd, response_buffer.c_str(), response_buffer.size(), 0);
     if (bytes_sent == -1) {
         throw std::runtime_error("Failed to write to socket");
     }
-    Logger::get().log(DEBUG, "Sent %ld bytes to client [%d]", bytes_sent, this->_socket_fd - 4);
+    Logger::get().log(DEBUG, "Sent %ld bytes", bytes_sent);
+    //std::cout << response_buffer << std::endl;
     this->_is_writing = false;
 }
 
@@ -93,7 +92,7 @@ void Client::serveFile(const std::string &file_path) {
 				if (ent->d_name[0] == '.')
 					continue;
 				body += "<li><a href=\"";
-				body += file_without_root + ent->d_name;
+				body += file_without_root + "/" + ent->d_name;
 				body += "\">";
 				body += ent->d_name;
 				body += "</a></li>";
@@ -126,20 +125,64 @@ void Client::processRequest(void) {
     this->_response = new HTTPResponse();
 
     std::map<std::string, std::string> headers;
+    headers["Access-Control-Allow-Origin"] = "*";
+    headers["Cache-Control"] = "no-cache";
+    headers["Content-Language"] = "en-US";
+    headers["Connection"] = "close";
     headers["Server"] = "webserv/1.0";
-    headers["Encoding"] = "gzip, deflate, br";
-    headers["Content-Type"] = "text/html";
-    headers["Connection"] = "keep-alive";
-    headers["Content-Length"] = "0";
-
-    this->_response->setHeaders(this->_request->getHeaders());
+    headers["Location"] = this->_request->getURI();
+    headers["Referrer-Policy"] = "no-referrer";
 
     if (this->_request->getMethod() == "GET") {
         std::string file_path = this->getFilePath();
+        headers["Content-Type"] = this->getMimeType(file_path);
         this->serveFile(file_path);
+    } else if (this->_request->getMethod() == "POST") {
+        this->_response->setStatusCode(NOT_IMPLEMENTED_STATUS);
+        this->_response->setStatusMessage("Not Implemented");
+        this->_response->setBody(ERR_PAGE(NOT_IMPLEMENTED_STATUS, "Not Implemented"));
+    } else if (this->_request->getMethod() == "DELETE") {
+        this->_response->setStatusCode(NOT_IMPLEMENTED_STATUS);
+        this->_response->setStatusMessage("Not Implemented");
+        this->_response->setBody(ERR_PAGE(NOT_IMPLEMENTED_STATUS, "Not Implemented"));
     } else {
         this->_response->setStatusCode(METHOD_NOT_ALLOWED_STATUS);
         this->_response->setStatusMessage("Method Not Allowed");
         this->_response->setBody(ERR_PAGE(METHOD_NOT_ALLOWED_STATUS, "Method Not Allowed"));
     }
+    headers["Content-Length"] = std::to_string(this->_response->getBody().size());
+    this->_response->setHeaders(headers);
+
+    // Debugging
+    const std::map<std::string, std::string> &response_headers = this->_response->getHeaders();
+    for (std::map<std::string, std::string>::const_iterator it = response_headers.begin(); it != response_headers.end(); it++) {
+        Logger::get().log(DEBUG, "Response Header: %s: %s", it->first.c_str(), it->second.c_str());
+    }
+}
+
+std::string Client::getMimeType(const std::string &file_path) {
+    std::map<std::string, std::string> mimeTypeMap;
+
+    mimeTypeMap[".txt"] = "text/plain";
+    mimeTypeMap[".html"] = "text/html";
+    mimeTypeMap[".css"] = "text/css";
+    mimeTypeMap[".js"] = "application/javascript";
+    mimeTypeMap[".json"] = "application/json";
+    mimeTypeMap[".jpg"] = "image/jpeg";
+    mimeTypeMap[".jpeg"] = "image/jpeg";
+    mimeTypeMap[".png"] = "image/png";
+    mimeTypeMap[".gif"] = "image/gif";
+    mimeTypeMap[".ico"] = "image/x-icon";
+    mimeTypeMap[".svg"] = "image/svg+xml";
+    mimeTypeMap[".webp"] = "image/webp";
+    mimeTypeMap[".mp3"] = "audio/mpeg";
+    mimeTypeMap[".wav"] = "audio/wav";
+    mimeTypeMap[".mp4"] = "video/mp4";
+    mimeTypeMap[".mpeg"] = "video/mpeg";
+
+    std::string extension = file_path.substr(file_path.find_last_of('.'));
+    if (mimeTypeMap.find(extension) != mimeTypeMap.end()) {
+        return mimeTypeMap[extension];
+    }
+    return "text/html";
 }
