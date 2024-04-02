@@ -23,11 +23,10 @@ void Client::readRequest(void) {
     this->_request = new HTTPRequest();
     this->_request->parse(buffer_str);
 
-	//g_logger.log(DEBUG, "request : \n%s", buffer_str.c_str());
 	Logger::get().log(DEBUG, "Received %ld bytes", bytes_read);
 	Logger::get().log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());
 	Logger::get().log(DEBUG, "Request Method: %s", this->_request->getMethod().c_str());
-	//g_logger.log(DEBUG, "Request Body: %s", this->_request->getBody().c_str());
+	//Logger::get().log(DEBUG, "Request Body: %s", this->_request->getBody().c_str());
 
     if (buffer_str.find("\r\n\r\n") != std::string::npos) {
         this->_is_writing = true;
@@ -66,18 +65,43 @@ bool isDirectory(const std::string &path) {
 }
 
 std::string Client::getFilePath(void) {
-    std::string root = this->_server.root;
-    std::string uri = this->_request->getURI();
+
+	static std::string root = this->_server.root;
+	std::string uri = this->_request->getURI();
+    std::vector<t_location>::iterator it = this->_server.locations.begin();
+    // if (uri == "/") {
+    //     if (this->_server.index != "")
+    //         uri = this->_server.index;
+    //     return (root + uri);
+    // }
+
+	std::cout << "root: " << root << std::endl;
+	for (; it != this->_server.locations.end(); it++)
+	{
+        std::cout << "it->path: " << it->path << std::endl;
+		std::cout << "uri: " << uri << std::endl;
+
+		if (uri == it->path)
+		{
+			std::cout << "found path!!" << std::endl;
+			std::cout << "it->root: " << it->root << std::endl;
+			std::cout << "it->index: " << it->index << std::endl;
+			root = it->root;
+			uri = it->index;
+			break;
+		}
+	}
+	return (root + "/" + uri);
+
+    // std::string root = this->_server.root;
+    // std::string uri = this->_request->getURI();
     
-    if (uri == "/") {
-        uri = this->_server.index;
-    }
-    Logger::get().log(DEBUG, "URI: %s", uri.c_str());
-    Logger::get().log(DEBUG, "Root: %s", root.c_str());
-    return (root + uri);
+    // Logger::get().log(DEBUG, "URI: %s", uri.c_str());
+    // Logger::get().log(DEBUG, "Root: %s", root.c_str());
+    // return (root + uri);
 }
 
-void Client::serveFile(const std::string &file_path) {
+void Client::serveFile(const std::string &file_path, std::map<std::string, std::string> &headers) {
 	if (isDirectory(file_path))
 	{
 		Logger::get().log(DEBUG, "is a directory");
@@ -115,9 +139,26 @@ void Client::serveFile(const std::string &file_path) {
         this->_response->setStatusCode(OK_STATUS);
         this->_response->setStatusMessage("OK");
     } else {
+        headers["Content-Type"] = "text/html";
         this->_response->setStatusCode(NOT_FOUND_STATUS);
         this->_response->setStatusMessage("Not Found");
-        this->_response->setBody(ERR_PAGE(NOT_FOUND_STATUS, "Not Found"));
+		if (this->_server.error_pages.find(404) == this->_server.error_pages.end()) {
+            std::cout << "404 not found" << std::endl;
+	        this->_response->setBody(ERR_PAGE(NOT_FOUND_STATUS, "Not Found"));
+        }
+		else
+		{
+			std::string error_page = this->_server.root + "/" + this->_server.error_pages[404];
+			std::cout << "error_page: " << error_page << std::endl;
+			fileStream.open(error_page, std::ios::binary);
+			if (fileStream.is_open())
+			{
+				std::string fileContent((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
+				this->_response->setBody(fileContent);
+			}
+			else
+				this->_response->setBody(ERR_PAGE(NOT_FOUND_STATUS, "Not Found"));
+		}
     }
 }
 
@@ -129,14 +170,14 @@ void Client::processRequest(void) {
     headers["Cache-Control"] = "no-cache";
     headers["Content-Language"] = "en-US";
     headers["Connection"] = "close";
-    headers["Server"] = "webserv/1.0";
+    headers["Server"] = this->_server.server_name;
     headers["Location"] = this->_request->getURI();
     headers["Referrer-Policy"] = "no-referrer";
 
     if (this->_request->getMethod() == "GET") {
         std::string file_path = this->getFilePath();
         headers["Content-Type"] = this->getMimeType(file_path);
-        this->serveFile(file_path);
+        this->serveFile(file_path, headers);
     } else if (this->_request->getMethod() == "POST") {
         this->_response->setStatusCode(NOT_IMPLEMENTED_STATUS);
         this->_response->setStatusMessage("Not Implemented");
@@ -182,7 +223,7 @@ std::string Client::getMimeType(const std::string &file_path) {
 
     std::string extension = file_path.substr(file_path.find_last_of('.'));
     if (mimeTypeMap.find(extension) != mimeTypeMap.end()) {
-        return mimeTypeMap[extension];
+        return (mimeTypeMap[extension]);
     }
-    return "text/html";
+    return ("text/html");
 }
