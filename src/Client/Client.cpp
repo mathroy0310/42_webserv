@@ -21,7 +21,7 @@ void Client::readRequest(void) {
 	}
     std::string buffer_str(buffer, bytes_read);
     this->_request = new HTTPRequest();
-    this->_request->parse(buffer_str);
+    this->_request->appendHeader(buffer, bytes_read);
 
 	Logger::get().log(DEBUG, "Received %ld bytes", bytes_read);
 	Logger::get().log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());

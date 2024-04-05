@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 12:28:57 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/05 03:09:10 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #pragma once
 
 #include "defines.h"
+#include "utils.h"
 
 /*********************/
 /* directives Struct */
@@ -72,12 +73,6 @@ std::string process_file(std::ifstream &file);
 
 t_server parse_server_block(std::string line);
 
-/*******************/
-/* trim.cpp */
-/*******************/
-
-std::string trim(const std::string &str);
-
 /***********************/
 /* parse_locations.cpp */
 /***********************/
@@ -95,5 +90,14 @@ std::string set_server_name(std::string &value, const std::string &key);
 int set_port_and_ip_address(std::string &value, const std::string &key, std::string &ip_address);
 void set_error_pages(std::string &value, const std::string &key, std::map<unsigned int, std::string> &error_pages);
 size_t set_max_client_size(std::string &value, const std::string &key);
+
+/***********************/
+/* parse_request.cpp */
+/***********************/
+void check_request(std::string buffer);
+void parse_start_line(std::map<std::string, std::string> &headermap, std::string line);
+void parse_header(std::map<std::string, std::string> &headermap, std::vector<std::string> lines);
+void set_key_and_value(std::string line, std::map<std::string, std::string> &headermap);
+void check_path(std::string path, std::string connection);
 
 #endif  // PARSING_HPP

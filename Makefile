@@ -6,13 +6,13 @@
 #    By: maroy <maroy@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/15 14:01:52 by maroy             #+#    #+#              #
-#    Updated: 2024/03/28 18:10:19 by maroy            ###   ########.fr        #
+#    Updated: 2024/04/05 02:04:49 by maroy            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = webserv
 CCPP = c++
-CPPFLAGS = -Wall -Werror -Wextra -std=c++98 -g -fsanitize=address  -I ./include -I ./src
+CPPFLAGS = -Wall -Werror -Wextra -std=c++11 -g -fsanitize=address  -I ./include -I ./src
 
 SRC_DIR = src
 OBJ_DIR = obj

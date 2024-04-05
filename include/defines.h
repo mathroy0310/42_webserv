@@ -1,12 +1,12 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-
 #include <algorithm>
 #include <arpa/inet.h>
 #include <cerrno>  // for errno
 #include <cstdlib>
 #include <cstring>  // for strerror
+#include <dirent.h>
 #include <fstream>
 #include <iosfwd>
 #include <iostream>
@@ -15,10 +15,9 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <sys/stat.h>
 #include <unistd.h>  // for close
 #include <vector>
-#include <sys/stat.h>
-#include <dirent.h>
 #include "Logger/Logger.hpp"
 
 /***********/
@@ -52,6 +51,24 @@
 /*********************/
 #define FILE_LINE YELLOW "[" << __FILE__ << ":" << __LINE__ << "]" << RESET_COLOR << std::endl
 
+/**************************/
+/* HTTP Request Constants */
+/**************************/
+#define REQ_METHOD "Request-Method"
+#define REQ_PATH "REQUEST_URI"
+#define REQ_HTTP_VERSION "Server-Protocol"
+#define REQ_SERVER_NAME "Server-Name"
+#define REQ_PORT "Server-Port"
+#define REQ_QUERY_STRING "QUERY_STRING"
+#define REQ_ENTITY_POST "Entity_Post"
+#define REQ_CONTENT_TYPE "Content-Type"
+#define REQ_TRANSFER "Transfer-Encoding"
+#define REQ_CONTENT_LENGTH "Content-Length"
+#define REQ_CONNECTION "Connection"
+#define REQ_COOKIES "Cookie"
+
+#define ALLOWED_URI_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%"
+
 /*********************/
 /* HTTP Status Codes */
 /*********************/
@@ -66,11 +83,12 @@
 #define FORBIDDEN_STATUS "403"
 #define NOT_FOUND_STATUS "404"
 #define METHOD_NOT_ALLOWED_STATUS "405"
-#define IM_A_TEAPOT_STATUS "418"           // april fools joke from 1998 lol
+#define IM_A_TEAPOT_STATUS "418"            // april fools joke from 1998 lol
 #define INTERNAL_SERVER_ERROR_STATUS "500"  // segfault
 #define NOT_IMPLEMENTED_STATUS "501"
 #define BAD_GATEWAY_STATUS "502"
 #define SERVICE_UNAVAILABLE_STATUS "503"
+#define HTTP_VERSION_NOT_SUPPORTED_STATUS "505"
 
 /******************/
 /* Error Messages */
@@ -92,6 +110,8 @@
     ERR_PREFIX << "Invalid value for " + std::string(arg) + ": " + std::string(value) << RESET_NL
 #define ERR_MSG_INVALID_DIRECTIVE(arg) ERR_PREFIX << "Invalid directive: " + std::string(arg) << RESET_NL
 
-#define ERR_PAGE(num, name) "<html><head><title>" + std::string(num) + " " + std::string(name) +"</title></head><body><center><h1>" + std::string(num) + " " + std::string(name) +"</h1></center><hr><center>webserv</center></body></html>"
+#define ERR_PAGE(num, name)                                                                                    \
+    "<html><head><title>" + std::string(num) + " " + std::string(name) + "</title></head><body><center><h1>" + \
+        std::string(num) + " " + std::string(name) + "</h1></center><hr><center>webserv</center></body></html>"
 
 #endif  // DEFINES_H

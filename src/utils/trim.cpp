@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parse_utils.cpp                                    :+:      :+:    :+:   */
+/*   trim.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 03:52:24 by maroy             #+#    #+#             */
-/*   Updated: 2024/02/19 01:29:13 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/05 03:09:44 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parsing.hpp"
+#include "defines.h"
 
 /**
  * @brief Remove space and tabulation from the beginning and the end of a string
