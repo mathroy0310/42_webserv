@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/05 22:07:07 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/06 13:58:12 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,22 +15,22 @@
 HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
 
 void HTTPResponse::initStatusCodeMap(void) {
-    this->_status_codes[200] = " 200 OK";
-    this->_status_codes[201] = " 201 Created";
-    this->_status_codes[204] = " 204 No Content";
-    this->_status_codes[301] = " 301 Moved Permanently";
-    this->_status_codes[304] = " 304 Not Modified";
-    this->_status_codes[400] = " 400 Bad Request";
-    this->_status_codes[403] = " 403 Forbidden";
-    this->_status_codes[404] = " 404 Not Found";
-    this->_status_codes[405] = " 405 Method Not Allowed";
-    this->_status_codes[409] = " 409 Conflict";
-    this->_status_codes[413] = " 413 Content Too Large";
-    this->_status_codes[415] = " 415 Unsupported Media Type";
-    this->_status_codes[500] = " 500 Internal Server Error";
-    this->_status_codes[501] = " 501 Not Implemented";
-    this->_status_codes[504] = " 504 Gateway Timeout";
-    this->_status_codes[505] = " 505 HTTP Version Not Supported";
+    this->_status_codes[200] = " OK";
+    this->_status_codes[201] = " Created";
+    this->_status_codes[204] = " No Content";
+    this->_status_codes[301] = " Moved Permanently";
+    this->_status_codes[304] = " Not Modified";
+    this->_status_codes[400] = " Bad Request";
+    this->_status_codes[403] = " Forbidden";
+    this->_status_codes[404] = " Not Found";
+    this->_status_codes[405] = " Method Not Allowed";
+    this->_status_codes[409] = " Conflict";
+    this->_status_codes[413] = " Content Too Large";
+    this->_status_codes[415] = " Unsupported Media Type";
+    this->_status_codes[500] = " Internal Server Error";
+    this->_status_codes[501] = " Not Implemented";
+    this->_status_codes[504] = " Gateway Timeout";
+    this->_status_codes[505] = " HTTP Version Not Supported";
 }
 
 HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
@@ -313,7 +313,7 @@ std::string HTTPResponse::fileToString(const std::string &file_path, int error_s
 
     (void)error_status;
     if (!this->_current_file.is_open()) {
-        throw std::runtime_error(ERR_PAGE(error_status, "error test"));
+        throw std::runtime_error(ERR_PAGE(error_status, this->_status_codes[error_status]));
     }
 
     char buffer[BUFFER_SIZE + 1];
