@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/05 03:20:03 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/05 19:14:27 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,22 +21,29 @@ HTTPRequest::HTTPRequest(void) {
 }
 
 HTTPRequest::~HTTPRequest(void) {
-    this->clear();
+    // this->clear();
 }
 
 void HTTPRequest::clear(void) {
     this->_method.clear();
     this->_uri.clear();
-    this->_headers.clear();
+    // this->_headers.clear();
     this->_body.clear();
+    this->_headerStr.clear();
+    this->_isHeaderEnd = false;
+    this->_total = 0;
 }
 
-std::string HTTPRequest::getMethod(void)  {
+std::string HTTPRequest::getMethod(void) {
     return (this->_headers[REQ_METHOD]);
 }
 
 std::string HTTPRequest::getURI(void) {
     return (this->_headers[REQ_PATH]);
+}
+
+bool HTTPRequest::getHeaderEnd(void) const {
+    return (this->_isHeaderEnd);
 }
 
 std::map<std::string, std::string> HTTPRequest::getHeaders(void) const {
@@ -53,6 +60,12 @@ std::string &HTTPRequest::getValueByKey(std::string key) {
 
 size_t HTTPRequest::getContentLenght(void) {
     return (std::atoll(this->_headers[REQ_CONTENT_LENGTH].c_str()));
+}
+
+void HTTPRequest::appendFile(char *buffer, int len) {
+    this->_total += len;
+    Logger::get().log(DEBUG, "Total: %d - Content-Length: %d", this->_total, this->getContentLenght());
+    this->_body.append(buffer, len);
 }
 
 void HTTPRequest::appendHeader(char *buffer, int len) {

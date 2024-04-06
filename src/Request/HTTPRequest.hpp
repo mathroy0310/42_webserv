@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:11 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/05 03:20:26 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/05 21:04:36 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,10 +27,11 @@ class HTTPRequest {
     std::string getMethod(void);
     std::string getURI(void);
     std::map<std::string, std::string> getHeaders(void) const;
+    bool getHeaderEnd(void) const;
     size_t getContentLenght(void);
-
     void addToHeader(std::string key, std::string value);
     std::string &getValueByKey(std::string key);
+    void appendFile(char *buffer, int len);
     void appendHeader(char *buffer, int len);
 
   private:
@@ -42,5 +43,4 @@ class HTTPRequest {
     bool _isHeaderEnd;
     std::string _headerStr;
     size_t _total;
-
 };

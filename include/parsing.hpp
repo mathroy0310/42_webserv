@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/05 03:09:10 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/05 21:45:02 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,24 +24,30 @@
 
 // Location directive
 typedef struct s_location {
+    int redirect_code;
+    std::string redirect_to;
     bool is_autoindex;
-    size_t max_body_size;
+    unsigned long long max_body_size;
     std::string path;
     std::string root;
     std::string index;
+    std::vector<std::string> allowed_methods;
     std::map<unsigned int, std::string> error_pages;
 } t_location;
 
 // Server directive
 typedef struct s_server {
+    int redirect_code;
+    std::string redirect_to;
     int port;
     std::string ip_address;
     bool is_autoindex;
-    size_t max_body_size;
+    unsigned long long max_body_size;
     size_t max_client_size;
     std::string server_name;
     std::string root;
     std::string index;
+    std::vector<std::string> allowed_methods;
     std::map<unsigned int, std::string> error_pages;
     std::vector<t_location> locations;
 } t_server;
@@ -83,6 +89,7 @@ t_location parse_location_block(std::string line);
 /* parse_directives.cpp */
 /***********************/
 
+std::vector<std::string> set_allowed_methods(std::string &value, const std::string &key);
 std::string set_index(std::string &value, const std::string &key);
 bool set_autoindex(std::string &value, const std::string &key);
 std::string set_root(std::string &value, const std::string &key);
@@ -90,6 +97,8 @@ std::string set_server_name(std::string &value, const std::string &key);
 int set_port_and_ip_address(std::string &value, const std::string &key, std::string &ip_address);
 void set_error_pages(std::string &value, const std::string &key, std::map<unsigned int, std::string> &error_pages);
 size_t set_max_client_size(std::string &value, const std::string &key);
+void set_redirect(std::string &value, const std::string &key, int &redirect_code, std::string &redirect_to);
+unsigned long long set_max_body_size(std::string &value, const std::string &key);
 
 /***********************/
 /* parse_request.cpp */

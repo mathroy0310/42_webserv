@@ -6,18 +6,21 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/28 13:07:20 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/05 21:49:31 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include "Request/HTTPRequest.hpp"
 #include "defines.h"
 
 class HTTPResponse {
-public:
+  public:
     // Constructors & Destructors
     HTTPResponse(void);
+    HTTPResponse(int status, t_server &server);
+    HTTPResponse(HTTPRequest *request, t_server &server);
     ~HTTPResponse(void);
 
     // Methods
@@ -25,9 +28,9 @@ public:
 
     // Setters
     void setVersion(const std::string &version);
-    void setStatusCode(const std::string &status_code);
+    void setStatusCode(int status_code);
     void setStatusMessage(const std::string &reason_phrase);
-    void setHeaders(const std::map<std::string, std::string> &headers);
+    void setHeaders(int status);
     void setBody(const std::string &body);
 
     // Getters
@@ -36,12 +39,48 @@ public:
     std::string getStatusMessage(void) const;
     std::map<std::string, std::string> getHeaders(void) const;
     std::string getBody(void) const;
-    
-private:
+
+    std::string buildResponse(void);
+
+    HTTPRequest *getRequest(void) const;
+    const std::string &getResponse(void) const;
+    bool getUploaded(void) const;
+
+  private:
+    void initStatusCodeMap(void);
+    void setContentType(const std::string &extension);
+    void listDirectory(DIR *dir);
+
+    const t_location &getLocation(void) const;
+    const t_server &getServer(void) const;
+
+    const std::string &returnError(int status);
+    void servFile(const std::string &file_path, int status, int error_status);
+    std::string fileToString(const std::string &file_path, int error_status);
+    std::string matching(void);
+    void defaultPage(void);
+    void locationExists(void);
+    void methodNotAllowed(void);
+    void locationRedirection(void);
+
     // Attributes
     std::string _version;
     std::string _status_code;
     std::string _status_message;
     std::map<std::string, std::string> _headers;
     std::string _body;
+
+    std::ifstream _current_file;
+    long long _content_length;
+    int _location_index;
+    std::string _s_response;
+    std::string _s_header;
+    std::map<int, std::string> _status_codes;
+    HTTPRequest *_request;
+    std::string _path;
+    std::string mime_type;
+    bool _is_header_done;
+    bool _is_uploaded;
+    bool _is_default_page_flag;
+    t_server _server;
 };

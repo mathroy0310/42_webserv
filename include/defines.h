@@ -18,12 +18,14 @@
 #include <sys/stat.h>
 #include <unistd.h>  // for close
 #include <vector>
-#include "Logger/Logger.hpp"
 
+//
+#include "Logger/Logger.hpp"
 /***********/
 /*  Macros */
 /***********/
 #define MAX_CLIENTS SOMAXCONN
+#define BUFFER_SIZE 4096
 
 /**********/
 /* Colors */
@@ -72,23 +74,23 @@
 /*********************/
 /* HTTP Status Codes */
 /*********************/
-#define OK_STATUS "200"
-#define MOVED_PERMANENTLY_STATUS "301"
-#define FOUND_STATUS "302"
-#define SEE_OTHER_STATUS "303"
-#define NOT_MODIFIED_STATUS "304"
-#define BAD_REQUEST_STATUS "400"
-#define UNAUTHORIZED_STATUS "401"
-#define PAYMENT_REQUIRED_STATUS "402"
-#define FORBIDDEN_STATUS "403"
-#define NOT_FOUND_STATUS "404"
-#define METHOD_NOT_ALLOWED_STATUS "405"
-#define IM_A_TEAPOT_STATUS "418"            // april fools joke from 1998 lol
-#define INTERNAL_SERVER_ERROR_STATUS "500"  // segfault
-#define NOT_IMPLEMENTED_STATUS "501"
-#define BAD_GATEWAY_STATUS "502"
-#define SERVICE_UNAVAILABLE_STATUS "503"
-#define HTTP_VERSION_NOT_SUPPORTED_STATUS "505"
+#define OK_STATUS 200
+#define MOVED_PERMANENTLY_STATUS 301
+#define FOUND_STATUS 302
+#define SEE_OTHER_STATUS 303
+#define NOT_MODIFIED_STATUS 304
+#define BAD_REQUEST_STATUS 400
+#define UNAUTHORIZED_STATUS 401
+#define PAYMENT_REQUIRED_STATUS 402
+#define FORBIDDEN_STATUS 403
+#define NOT_FOUND_STATUS 404
+#define METHOD_NOT_ALLOWED_STATUS 405
+#define IM_A_TEAPOT_STATUS 418            // april fools joke from 1998 lol
+#define INTERNAL_SERVER_ERROR_STATUS 500  // segfault
+#define NOT_IMPLEMENTED_STATUS 501
+#define BAD_GATEWAY_STATUS 502
+#define SERVICE_UNAVAILABLE_STATUS 503
+#define HTTP_VERSION_NOT_SUPPORTED_STATUS 505
 
 /******************/
 /* Error Messages */
@@ -108,10 +110,18 @@
 #define ERR_MSG_NO_VALUE(arg) ERR_PREFIX << "No value for " + std::string(arg) << RESET_NL
 #define ERR_MSG_INVALID_VALUE(arg, value) \
     ERR_PREFIX << "Invalid value for " + std::string(arg) + ": " + std::string(value) << RESET_NL
+#define ERR_MSG_INVALID_METHOD(arg) ERR_PREFIX << "Invalid method: " + std::string(arg) << RESET_NL
 #define ERR_MSG_INVALID_DIRECTIVE(arg) ERR_PREFIX << "Invalid directive: " + std::string(arg) << RESET_NL
 
-#define ERR_PAGE(num, name)                                                                                    \
-    "<html><head><title>" + std::string(num) + " " + std::string(name) + "</title></head><body><center><h1>" + \
-        std::string(num) + " " + std::string(name) + "</h1></center><hr><center>webserv</center></body></html>"
+#define ERR_PAGE(num, name)                                                                                       \
+    "<html><head><title>" + std::to_string(num) + " " + std::string(name) + "</title></head><body><center><h1>" + \
+        std::to_string(num) + " " + std::string(name) + "</h1></center><hr><center>webserv</center></body></html>"
+#define DEFAULT_PAGE                                                                                                   \
+    "<!DOCTYPE html><html><head><title>Welcome to "                                                                    \
+    "Webserv!</"                                                                                                       \
+    "title><style>body{font-family:Arial,sans-serif;background-color:#f4f4f4;color:#333;margin:20px;}h1{color:#"       \
+    "2e8b57;}p{color:#555;}ul{list-style-type:none;padding:0;}li{margin-bottom:10px;}a{color:#0066cc;text-decoration:" \
+    "none;font-weight:bold;}a:hover{text-decoration:underline;}</style></head><body><h1>Welcome to "                   \
+    "Webserv!</h1></body></html>"
 
 #endif  // DEFINES_H

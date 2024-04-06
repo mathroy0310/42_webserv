@@ -29,7 +29,7 @@ void Server::stop(void) {
     if (this->_running) {
         this->_running = false;
         Logger::get().log(INFO, "Server stopping...");
-        
+
         std::map<int, SocketWrapper>::iterator server = this->_listening_sockets.begin();
         for (; server != this->_listening_sockets.end(); server++) {
             close(server->first);
@@ -63,34 +63,99 @@ void Server::acceptConnections() {
     for (int i = 0; server != this->_listening_sockets.end(); server++) {
         if (this->_multiplexer->canRead(server->first)) {
             int new_client = server->second.acceptSocket();
-            if (new_client == -1 || new_client == std::stoi(SERVICE_UNAVAILABLE_STATUS)) {
+            if (new_client == -1 || new_client == SERVICE_UNAVAILABLE_STATUS) {
                 continue;
             }
-            Logger::get().log(DEBUG, "New client connection [%d] on server on port %d", (new_client - this->_server_count), server->second.getPort());
+            Logger::get().log(DEBUG, "New client connection [%d] on server on port %d",
+                              (new_client - this->_server_count), server->second.getPort());
             this->_multiplexer->addFd(new_client, POLLIN);
             this->_clients.push_back(Client(new_client, this->_config.servers[i]));
         }
-		i++;
+        i++;
     }
 }
 
 void Server::handleRequests(void) {
     std::vector<Client>::iterator client = this->_clients.begin();
     while (client != this->_clients.end()) {
+        std::system("sleep 0.05");
         if (this->_multiplexer->canRead(client->getSocketFd())) {
-            client->readRequest();
-            if (client->hasPendingOperations()) {
+            try {
+                read_socket(*client);
                 this->_multiplexer->addFd(client->getSocketFd(), POLLOUT);
+            } catch (const std::exception &e) {
+                Logger::get().log(ERROR, "Error reading request: %s", e.what());
             }
         }
         if (this->_multiplexer->canWrite(client->getSocketFd())) {
-            client->writeResponse();
-            if (!client->hasPendingOperations()) {
+            try {
+                if (write_socket(*client)) {
+                    this->_multiplexer->removeFd(client->getSocketFd());
+                    client->disconnect();
+                    Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() + 2);
+                    client = this->_clients.erase(client);
+                    continue;
+                }
+            } catch (const std::exception &ex) {
                 this->_multiplexer->removeFd(client->getSocketFd());
-                Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() - this->_server_count);
                 client->disconnect();
+                client = this->_clients.erase(client);
+                continue;
             }
         }
         client++;
     }
+}
+
+void Server::read_socket(Client &client) {
+    if (!client.getRequest())
+        client.setRequest(client.createNewRequest());
+    char buffer[BUFFER_SIZE + 1];
+
+    bzero(buffer, BUFFER_SIZE + 1);
+    int len = recv(client.getSocketFd(), buffer, BUFFER_SIZE, 0);
+    if (len == -1)
+        throw std::runtime_error("Error reading from socket");
+    else if (len == 0)
+        throw std::runtime_error("Client disconnected");
+    if (!client.getRequest()->getHeaderEnd()) {
+        try {
+            client.getRequest()->appendHeader(buffer, len);
+        } catch (int status) {
+            client.setStatus(status);
+        }
+    } else {
+        client.getRequest()->appendFile(buffer, len);
+    }
+    Logger::get().log(DEBUG, "REQ_METHOD:=%s", client.getRequest()->getHeaders()[REQ_METHOD].c_str());
+    Logger::get().log(DEBUG, "REQ_PATH:=%s", client.getRequest()->getHeaders()[REQ_PATH].c_str());
+    Logger::get().log(DEBUG, "REQ_CONTENT_LENGTH:=%s", client.getRequest()->getHeaders()[REQ_CONTENT_LENGTH].c_str());
+    Logger::get().log(DEBUG, "REQ_CONNECTION:=%s", client.getRequest()->getHeaders()[REQ_CONNECTION].c_str());
+}
+
+bool Server::write_socket(Client &client) {
+    HTTPRequest *request = client.getRequest();
+    HTTPResponse *response = client.getResponse();
+    bool keep_alive = request->getValueByKey(REQ_CONNECTION).empty()
+                          ? true
+                          : (request->getValueByKey(REQ_CONNECTION) == "keep-alive");
+
+    std::string buffer_reponse;
+
+    buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
+    if (response->getUploaded() == true) {
+		Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
+        int len = send(client.getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
+        if (len < BUFFER_SIZE) {
+            request->clear();
+            delete request;
+            client.setRequest(NULL);
+            delete response;
+            client.setResponse(NULL);
+            if (len == -1)
+                return (false);
+            return (keep_alive);
+        }
+    }
+    return (true);
 }

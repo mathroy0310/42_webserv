@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_servers.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 16:07:13 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/04/05 21:57:19 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ void parse_server_directive(std::string &key, std::string &value, t_server &serv
         server.max_client_size = set_max_client_size(value, key);
     else if (key == "error_pages")
         set_error_pages(value, key, server.error_pages);
+    else if (key == "allowed_methods")
+        server.allowed_methods = set_allowed_methods(value, key);
     else {
         std::cerr << ERR_MSG_INVALID_DIRECTIVE(key) << FILE_LINE;
         exit(EXIT_FAILURE);
@@ -60,12 +62,13 @@ void parse_server_line(std::string line, t_server &server) {
 
 static void init(t_server &server) {
     server.max_body_size = 0;
-	server.max_client_size = MAX_CLIENTS;
+    server.max_client_size = MAX_CLIENTS;
     server.is_autoindex = false;
     server.port = -1;
     server.server_name = "";
     server.root = "";
-    server.index = "index.html";
+    //server.index = "index.html";
+    server.redirect_code = -1;
 }
 
 t_server parse_server_block(std::string line) {

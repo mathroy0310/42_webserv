@@ -3,21 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/29 14:32:49 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/04/05 19:43:43 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "parsing.hpp"
-#include "defines.h"
+#include "Client/Client.hpp"
 #include "Socket/Multiplexer.hpp"
 #include "Socket/SocketWrapper.hpp"
-#include "Client/Client.hpp"
+#include "defines.h"
+#include "parsing.hpp"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -49,6 +49,9 @@ class Server {
     void setupServerConnections(void);
     void acceptConnections(void);
     void handleRequests(void);
+
+    void read_socket(Client &client);
+    bool write_socket(Client &client);
 };
 
 #endif  // SERVER_HPP

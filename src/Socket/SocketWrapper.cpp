@@ -54,11 +54,11 @@ int SocketWrapper::acceptSocket(void) {
     int new_client_fd = accept(this->_socket_fd, (struct sockaddr *)&this->_addr, &this->_addr_len);
     if (new_client_fd == -1) {
         Logger::get().log(ERROR, "Socket Accept Failed `accept()'");
-		return (-1);
+        return (-1);
     }
     if (!this->checkMaxClients()) {
         close(new_client_fd);
-        return (std::stoi(SERVICE_UNAVAILABLE_STATUS));
+        return (SERVICE_UNAVAILABLE_STATUS);
     }
     this->_clients_fd.push_back(new_client_fd);
     return (new_client_fd);
