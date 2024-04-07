@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/06 13:58:12 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/06 20:46:03 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,22 +15,23 @@
 HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
 
 void HTTPResponse::initStatusCodeMap(void) {
-    this->_status_codes[200] = " OK";
-    this->_status_codes[201] = " Created";
-    this->_status_codes[204] = " No Content";
-    this->_status_codes[301] = " Moved Permanently";
-    this->_status_codes[304] = " Not Modified";
-    this->_status_codes[400] = " Bad Request";
-    this->_status_codes[403] = " Forbidden";
-    this->_status_codes[404] = " Not Found";
-    this->_status_codes[405] = " Method Not Allowed";
-    this->_status_codes[409] = " Conflict";
-    this->_status_codes[413] = " Content Too Large";
-    this->_status_codes[415] = " Unsupported Media Type";
-    this->_status_codes[500] = " Internal Server Error";
-    this->_status_codes[501] = " Not Implemented";
-    this->_status_codes[504] = " Gateway Timeout";
-    this->_status_codes[505] = " HTTP Version Not Supported";
+    this->_status_codes[200] = "200 OK";
+    this->_status_codes[201] = "201 Created";
+    this->_status_codes[204] = "204 No Content";
+    this->_status_codes[301] = "301 Moved Permanently";
+    this->_status_codes[304] = "304 Not Modified";
+    this->_status_codes[400] = "400 Bad Request";
+    this->_status_codes[403] = "403 Forbidden";
+    this->_status_codes[404] = "404 Not Found";
+    this->_status_codes[405] = "405 Method Not Allowed";
+    this->_status_codes[409] = "409 Conflict";
+    this->_status_codes[413] = "413 Content Too Large";
+    this->_status_codes[415] = "415 Unsupported Media Type";
+    this->_status_codes[418] = "418 I'm a teapot";
+    this->_status_codes[500] = "500 Internal Server Error";
+    this->_status_codes[501] = "501 Not Implemented";
+    this->_status_codes[504] = "504 Gateway Timeout";
+    this->_status_codes[505] = "505 HTTP Version Not Supported";
 }
 
 HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
@@ -81,22 +82,6 @@ HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     correctPath(this->_path);
 }
 
-std::string HTTPResponse::matching() {
-    std::string req_path = this->_request->getValueByKey(REQ_PATH);
-    std::string root = this->_server.root;
-
-    this->locationExists();
-    if (this->_location_index == -1) {
-        if (root.empty() && req_path.find_first_not_of('/') == req_path.npos)
-            this->defaultPage();
-        return (root + req_path);
-    }
-    t_location location = this->getLocation();
-    if (!location.root.empty())
-        root = location.root;
-    return (root + req_path);
-}
-
 void HTTPResponse::locationExists() {
     std::vector<t_location> locations = this->_server.locations;
     std::vector<std::string> location_paths;
@@ -105,6 +90,7 @@ void HTTPResponse::locationExists() {
         location_paths.push_back(locations[i].path);
     std::string look_for = this->_request->getValueByKey(REQ_PATH);
     while (look_for.size() > 0) {
+        Logger::get().log(DEBUG, "look_for: %s", look_for.c_str());
         std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), look_for);
         if (it != location_paths.end()) {
             this->_location_index = std::distance(location_paths.begin(), it);
@@ -122,6 +108,30 @@ void HTTPResponse::locationExists() {
             return;
         }
     }
+}
+
+std::string HTTPResponse::matching() {
+    std::string req_path = this->_request->getValueByKey(REQ_PATH);
+    std::string root = this->_server.root;
+
+    this->locationExists();
+    Logger::get().log(DEBUG, "location index: %d", this->_location_index);
+    if (this->_location_index == -1) {
+        if (root.empty() && req_path.find_first_not_of('/') == req_path.npos)
+            this->defaultPage();
+        Logger::get().log(DEBUG, "root: %s", root.c_str());
+        Logger::get().log(DEBUG, "req_path: %s", req_path.c_str());
+        return (root + req_path);
+    }
+    t_location location = this->getLocation();
+    if (!location.root.empty())
+        root = location.root;
+    Logger::get().log(DEBUG, "root: %s", root.c_str());
+    Logger::get().log(DEBUG, "req_path: %s", req_path.c_str());
+    req_path = req_path.substr(location.path.length(), req_path.length());
+
+    Logger::get().log(DEBUG, "root + req_path: %s", (root + req_path).c_str());
+    return (root + req_path);
 }
 
 void HTTPResponse::setContentType(const std::string &extension) {
@@ -228,20 +238,6 @@ bool HTTPResponse::getUploaded(void) const {
 
 HTTPResponse::~HTTPResponse(void) {}
 
-std::string HTTPResponse::serialize(void) const {
-    std::string response;
-
-    response += this->_version + " " + this->_status_code + " " + this->_status_message + "\r\n";
-    for (std::map<std::string, std::string>::const_iterator it = this->_headers.begin(); it != this->_headers.end();
-         ++it) {
-        response += it->first + ": " + it->second + "\r\n";
-    }
-    response += "\r\n";
-    response += this->_body;
-    // Logger::get().log(DEBUG, "reponse icitte: \n%s", response.c_str());
-    return (response);
-}
-
 void HTTPResponse::setVersion(const std::string &version) {
     this->_version = version;
 }
@@ -256,14 +252,12 @@ void HTTPResponse::setStatusMessage(const std::string &status_status_message) {
 
 void HTTPResponse::setHeaders(int status) {
     if (!this->_is_header_done) {
-        this->_s_header += "HTTP/1.1";
+        this->_s_header += "HTTP/1.1 ";
         this->_s_header += this->_status_codes[status] + "\r\n";
         this->_s_header += "Connection: keep-alive\r\n";
         this->_s_header += "Accept-Ranges: bytes\r\n";
         this->_s_header += "Content-Type: " + this->mime_type + "\r\n";
         this->_s_header += "Content-Length: " + std::to_string(this->_content_length) + "\r\n";
-        if (this->_request)
-            this->_s_header += "Set-Cookie: " + this->_request->getValueByKey(REQ_COOKIES) + "\r\n";
         this->_s_header += "\r\n";
         this->_is_header_done = true;
     }
@@ -307,20 +301,20 @@ std::string HTTPResponse::fileToString(const std::string &file_path, int error_s
     if (!this->_current_file.is_open()) {
         this->_current_file.open(file_path.c_str());
         struct stat fs;
+        Logger::get().log(DEBUG, "file_path: %s", file_path.c_str());
         if (stat(file_path.c_str(), &fs) == 0)
             this->_content_length = fs.st_size;
     }
 
-    (void)error_status;
     if (!this->_current_file.is_open()) {
-        throw std::runtime_error(ERR_PAGE(error_status, this->_status_codes[error_status]));
+        throw std::runtime_error(ERR_PAGE(this->_status_codes[error_status]));
     }
 
     char buffer[BUFFER_SIZE + 1];
     bzero(buffer, BUFFER_SIZE + 1);
     this->_current_file.read(buffer, BUFFER_SIZE);
     std::string result(buffer, this->_current_file.gcount());
-    return result;
+    return (result);
 }
 
 const std::string &HTTPResponse::returnError(int status) {
@@ -375,7 +369,6 @@ void HTTPResponse::listDirectory(DIR *dir) {
         is_autoindex = this->getServer().is_autoindex;
     }
 
-    (void)dir;
     std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
     if (index.empty()) {
         try {
@@ -451,12 +444,10 @@ void HTTPResponse::locationRedirection() {
         redir_code = location.redirect_code;
     }
     if (!this->_is_header_done) {
-        this->_s_header += "HTTP/1.1";
+        this->_s_header += "HTTP/1.1 ";
         this->_s_header += this->_status_codes[redir_code] + "\r\n";
         this->_s_header += "Content-Lenght: 0\r\n";
-        if (this->_request)
-            this->_s_header += "Set-Cookie: " + this->_request->getValueByKey(REQ_COOKIES) + "\r\n";
-        this->_s_header += "Location: " + redir_code;
+        this->_s_header += "Location: " + redir_to;
         this->_s_header += "\r\n";
         this->_is_header_done = true;
     }
@@ -475,6 +466,7 @@ std::string HTTPResponse::buildResponse(void) {
             (this->_location_index > -1 && !this->getLocation().redirect_to.empty())) {
             this->locationRedirection();
         } else if (dir) {
+            Logger::get().log(DEBUG, "listDirectory");
             this->listDirectory(dir);
         } else {
             this->servFile(this->_path, OK_STATUS, NOT_FOUND_STATUS);

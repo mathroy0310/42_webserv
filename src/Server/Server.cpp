@@ -84,7 +84,7 @@ void Server::handleRequests(void) {
                 read_socket(*client);
                 this->_multiplexer->addFd(client->getSocketFd(), POLLOUT);
             } catch (const std::exception &e) {
-                Logger::get().log(ERROR, "Error reading request: %s", e.what());
+               throw std::runtime_error("Client disconnected");
             }
         }
         if (this->_multiplexer->canWrite(client->getSocketFd())) {
@@ -115,7 +115,7 @@ void Server::read_socket(Client &client) {
     bzero(buffer, BUFFER_SIZE + 1);
     int len = recv(client.getSocketFd(), buffer, BUFFER_SIZE, 0);
     if (len == -1)
-        throw std::runtime_error("Error reading from socket");
+        client.disconnect();
     else if (len == 0)
         throw std::runtime_error("Client disconnected");
     if (!client.getRequest()->getHeaderEnd()) {
