@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/05 21:49:31 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/07 01:13:36 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,6 @@ class HTTPResponse {
     HTTPResponse(int status, t_server &server);
     HTTPResponse(HTTPRequest *request, t_server &server);
     ~HTTPResponse(void);
-
-    // Methods
-    std::string serialize(void) const;
 
     // Setters
     void setVersion(const std::string &version);

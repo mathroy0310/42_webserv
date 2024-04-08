@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/06 20:46:03 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/07 20:45:48 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,33 +368,34 @@ void HTTPResponse::listDirectory(DIR *dir) {
         index = this->getServer().index;
         is_autoindex = this->getServer().is_autoindex;
     }
+	(void)is_autoindex;
 
     std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
+	Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
+	Logger::get().log(DEBUG, "index: %s", index.c_str());
     if (index.empty()) {
         try {
             this->setContentType(".html");
             this->servFile(indexFile, OK_STATUS, 0);
             return;
         } catch (const std::exception &e) {
+			this->_is_header_done = false;
         }
     } else if (!index.empty()) {
         if (index[0] == '/')
             throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
         indexFile = this->_path + index;
         this->setContentType(getExtension(indexFile));
+		Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
         return (servFile(indexFile, OK_STATUS, NOT_FOUND_STATUS));
     }
-    if (is_autoindex == true) {
-        this->_body = directory_listing(dir, this->_request->getValueByKey(REQ_PATH));
-        this->_content_length = this->_body.length();
-        this->setContentType(".html");
-
-        this->setHeaders(OK_STATUS);
-        this->_s_response = this->_s_header + this->_body;
-        this->_s_header.clear();
-        return;
-    }
-    throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
+	Logger::get().log(DEBUG, "directory_listing");
+	this->_body = directory_listing(dir, this->_request->getValueByKey(REQ_PATH));
+	this->_content_length = this->_body.length();
+	this->setContentType(".html");
+	this->setHeaders(OK_STATUS);
+	this->_s_response = this->_s_header + this->_body;
+	this->_s_header.clear();
 }
 
 static void correctPath(std::string &path) {
