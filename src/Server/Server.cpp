@@ -114,10 +114,12 @@ void Server::read_socket(Client &client) {
 
     bzero(buffer, BUFFER_SIZE + 1);
     int len = recv(client.getSocketFd(), buffer, BUFFER_SIZE, 0);
+	Logger::get().log(DEBUG, "Req Buffer: %s", buffer);
     if (len == -1)
         client.disconnect();
     else if (len == 0)
-        throw std::runtime_error("Client disconnected");
+		client.disconnect();
+        //throw std::runtime_error("Client disconnected");
     if (!client.getRequest()->getHeaderEnd()) {
         try {
             client.getRequest()->appendHeader(buffer, len);

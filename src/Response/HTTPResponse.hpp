@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/07 01:13:36 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/08 18:52:46 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ class HTTPResponse {
     std::map<std::string, std::string> _headers;
     std::string _body;
 
-    std::ifstream _current_file;
+   
     long long _content_length;
     int _location_index;
     std::string _s_response;

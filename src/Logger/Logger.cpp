@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 13:03:26 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/08 19:08:14 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void Logger::log(e_logLevel level, const char *format, ...) {
         break;
     }
 
-    char message[1024];
+    char message[BUFFER_SIZE];
     va_list args;
     va_start(args, format);
     vsnprintf(message, sizeof(message), format, args);

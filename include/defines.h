@@ -19,14 +19,16 @@
 #include <unistd.h>  // for close
 #include <vector>
 
-//
+/**********/
+/* Logger */
+/**********/
 #include "Logger/Logger.hpp"
 /***********/
 /*  Macros */
 /***********/
 #define MAX_CLIENTS SOMAXCONN
+// #define BUFFER_SIZE 16384
 #define BUFFER_SIZE 4096
-
 /**********/
 /* Colors */
 /**********/
@@ -85,6 +87,7 @@
 #define FORBIDDEN_STATUS 403
 #define NOT_FOUND_STATUS 404
 #define METHOD_NOT_ALLOWED_STATUS 405
+#define CONTENT_TOO_LARGE_STATUS 413
 #define IM_A_TEAPOT_STATUS 418            // april fools joke from 1998 lol
 #define INTERNAL_SERVER_ERROR_STATUS 500  // segfault
 #define NOT_IMPLEMENTED_STATUS 501

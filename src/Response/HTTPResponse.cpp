@@ -6,11 +6,32 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/07 20:45:48 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/08 21:46:08 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPResponse.hpp"
+
+static void correctPath(std::string &path) {
+    size_t tmp = path.find_last_not_of('/');
+    if (tmp != path.length() - 1) {
+        path.erase(tmp + 2, -1);
+    }
+}
+
+static bool isMethodAllowed(const std::string &method, const std::vector<std::string> &allowed_methods) {
+    return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
+}
+
+static bool findAllowedMethod(const std::string &method, const t_server &server, const t_location *location) {
+    if (location == NULL)
+        return (isMethodAllowed(method, server.allowed_methods));
+    else {
+        bool in_location = isMethodAllowed(method, location->allowed_methods);
+        bool in_server = isMethodAllowed(method, server.allowed_methods);
+        return (in_location || (location->allowed_methods.empty() && in_server));
+    }
+}
 
 HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
 
@@ -298,22 +319,27 @@ const t_server &HTTPResponse::getServer(void) const {
 }
 
 std::string HTTPResponse::fileToString(const std::string &file_path, int error_status) {
-    if (!this->_current_file.is_open()) {
-        this->_current_file.open(file_path.c_str());
+	std::ifstream current_file;
+    if (!current_file.is_open()) {
+        current_file.open(file_path.c_str());
         struct stat fs;
         Logger::get().log(DEBUG, "file_path: %s", file_path.c_str());
         if (stat(file_path.c_str(), &fs) == 0)
             this->_content_length = fs.st_size;
-    }
-
-    if (!this->_current_file.is_open()) {
+	}
+    if (!current_file.is_open()) {
         throw std::runtime_error(ERR_PAGE(this->_status_codes[error_status]));
     }
 
     char buffer[BUFFER_SIZE + 1];
     bzero(buffer, BUFFER_SIZE + 1);
-    this->_current_file.read(buffer, BUFFER_SIZE);
-    std::string result(buffer, this->_current_file.gcount());
+    current_file.read(buffer, BUFFER_SIZE);
+    std::string result(buffer, current_file.gcount());
+	while (current_file.gcount() > 0) {
+		bzero(buffer, BUFFER_SIZE + 1);
+		current_file.read(buffer, BUFFER_SIZE);
+		result += std::string(buffer, current_file.gcount());
+	}
     return (result);
 }
 
@@ -368,27 +394,27 @@ void HTTPResponse::listDirectory(DIR *dir) {
         index = this->getServer().index;
         is_autoindex = this->getServer().is_autoindex;
     }
-	(void)is_autoindex;
 
-    std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
+
+	std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
 	Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
 	Logger::get().log(DEBUG, "index: %s", index.c_str());
-    if (index.empty()) {
-        try {
-            this->setContentType(".html");
-            this->servFile(indexFile, OK_STATUS, 0);
-            return;
-        } catch (const std::exception &e) {
+	if (index.empty()) {
+		try {
+			this->setContentType(".html");
+			this->servFile(indexFile, OK_STATUS, 0);
+			return;
+		} catch (const std::exception &e) {
 			this->_is_header_done = false;
-        }
-    } else if (!index.empty()) {
-        if (index[0] == '/')
-            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
-        indexFile = this->_path + index;
-        this->setContentType(getExtension(indexFile));
+		}
+	} else if (!index.empty()) {
+		if (index[0] == '/')
+			throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+		indexFile = this->_path + index;
+		this->setContentType(getExtension(indexFile));
 		Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
-        return (servFile(indexFile, OK_STATUS, NOT_FOUND_STATUS));
-    }
+		return (servFile(indexFile, OK_STATUS, NOT_FOUND_STATUS));
+	}
 	Logger::get().log(DEBUG, "directory_listing");
 	this->_body = directory_listing(dir, this->_request->getValueByKey(REQ_PATH));
 	this->_content_length = this->_body.length();
@@ -396,27 +422,6 @@ void HTTPResponse::listDirectory(DIR *dir) {
 	this->setHeaders(OK_STATUS);
 	this->_s_response = this->_s_header + this->_body;
 	this->_s_header.clear();
-}
-
-static void correctPath(std::string &path) {
-    size_t tmp = path.find_last_not_of('/');
-    if (tmp != path.length() - 1) {
-        path.erase(tmp + 2, -1);
-    }
-}
-
-static bool isMethodAllowed(const std::string &method, const std::vector<std::string> &allowed_methods) {
-    return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
-}
-
-static bool findAllowedMethod(const std::string &method, const t_server &server, const t_location *location) {
-    if (location == NULL)
-        return (isMethodAllowed(method, server.allowed_methods));
-    else {
-        bool in_location = isMethodAllowed(method, location->allowed_methods);
-        bool in_server = isMethodAllowed(method, server.allowed_methods);
-        return (in_location || (location->allowed_methods.empty() && in_server));
-    }
 }
 
 void HTTPResponse::methodNotAllowed(void) {
