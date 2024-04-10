@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 20:48:46 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/05 21:36:14 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/10 15:35:45 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,6 +187,32 @@ void set_error_pages(std::string &value, const std::string &key, std::map<unsign
         error_pages[std::stoi(error_index.c_str())] = error_value;
     }
 }
+
+void set_cgi_ext(std::string &value, const std::string &key, std::map<std::string, std::string> &cgi) {
+	if (value.empty() || value == ";") {
+		std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
+		exit(EXIT_FAILURE);
+	}
+	std::string token;
+	std::istringstream em(value);
+	while (std::getline(em, token)) {
+		token = trim(token);
+		size_t first = token.find_first_of(",");
+		if (first == std::string::npos) {
+			std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+			exit(EXIT_FAILURE);
+		}
+		std::string cgi_ext = trim(token.substr(0, first));
+		std::string cgi_value = trim(token.substr(first + 1, -1));
+		if (cgi_ext == "" || cgi_value == "") {
+			std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
+			exit(EXIT_FAILURE);
+		}
+		// s
+		cgi[cgi_ext] = cgi_value;
+	}
+}
+
 
 size_t set_max_client_size(std::string &value, const std::string &key) {
     if (value.empty() || value == ";") {

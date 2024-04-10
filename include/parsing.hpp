@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/05 21:45:02 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/10 15:27:54 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ typedef struct s_location {
     std::string root;
     std::string index;
     std::vector<std::string> allowed_methods;
+	std::map<std::string, std::string> cgi;
     std::map<unsigned int, std::string> error_pages;
 } t_location;
 
@@ -49,6 +50,7 @@ typedef struct s_server {
     std::string index;
     std::vector<std::string> allowed_methods;
     std::map<unsigned int, std::string> error_pages;
+	std::map<std::string, std::string> cgi;
     std::vector<t_location> locations;
 } t_server;
 
@@ -99,6 +101,7 @@ void set_error_pages(std::string &value, const std::string &key, std::map<unsign
 size_t set_max_client_size(std::string &value, const std::string &key);
 void set_redirect(std::string &value, const std::string &key, int &redirect_code, std::string &redirect_to);
 unsigned long long set_max_body_size(std::string &value, const std::string &key);
+void set_cgi_ext(std::string &value, const std::string &key, std::map<std::string, std::string> &cgi);
 
 /***********************/
 /* parse_request.cpp */
