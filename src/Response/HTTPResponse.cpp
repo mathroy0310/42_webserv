@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/11 16:03:07 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 18:17:32 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -496,6 +496,7 @@ std::string HTTPResponse::buildResponse(void) {
     if (this->_is_default_page_flag == true)
         return (this->_s_response);
     DIR *dir = opendir(this->_path.c_str());
+	t_location location = this->getLocation();
     try {
         std::string requested_method = this->_request->getValueByKey(REQ_METHOD);
         methodNotAllowed();
@@ -507,9 +508,8 @@ std::string HTTPResponse::buildResponse(void) {
         } else if (dir) {
             Logger::get().log(DEBUG, "listDirectory");
             this->listDirectory(dir);
-        } else if (this->_server.is_cgi) {
+        } else if (location.is_cgi == true) {
             CGIHandler cgi(this->_request, this->_server, this->_path);
-            t_location location = this->getLocation();
             this->_s_response = cgi.executeCGI(location);
         } else {
             this->servFile(this->_path, OK_STATUS, NOT_FOUND_STATUS);

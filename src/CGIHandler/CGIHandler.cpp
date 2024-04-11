@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/08 17:58:53 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/11 16:00:48 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 17:19:58 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ std::string CGIHandler::executeCGI(t_location &location) {
     } else {
         cgi_exec = location.cgi[cgi_ext];
     }
+	if (cgi_exec.empty() || cgi_ext.empty())
+		return "Couldnt find executable for this extension";
 
     (void)this->_server;
     int pipefd[2];
@@ -67,6 +69,9 @@ std::string CGIHandler::executeCGI(t_location &location) {
         // Parent process
         close(pipefd[1]);
         std::string output;
+		output = "HTTP/1.1 200 OK\r\n";
+		output += "Content-Type: text/html\r\n";
+		output += "\r\n";
         char buffer[4096];
         ssize_t bytesRead;
         while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0) {

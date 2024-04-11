@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/11 15:52:51 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 18:19:09 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,6 @@ void parse_server_directive(std::string &key, std::string &value, t_server &serv
         server.allowed_methods = set_allowed_methods(value, key);
 	else if (key == "max_body_size")
         server.max_body_size = set_max_body_size(value, key);
-	else if (key == "cgi")
-	{
-		set_cgi_ext(value, key, server.cgi);
-		server.is_cgi = true;
-	}
     else {
         std::cerr << ERR_MSG_INVALID_DIRECTIVE(key) << FILE_LINE;
         exit(EXIT_FAILURE);
@@ -71,7 +66,6 @@ static void init(t_server &server) {
     server.max_body_size = 0;
     server.max_client_size = MAX_CLIENTS;
     server.is_autoindex = false;
-	server.is_cgi = false;
     server.port = -1;
     server.server_name = "";
     server.root = "";

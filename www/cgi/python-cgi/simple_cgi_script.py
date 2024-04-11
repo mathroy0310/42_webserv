@@ -15,10 +15,6 @@ def main():
     # Retrieve the QUERY_STRING environment variable
     query_string = os.environ.get('QUERY_STRING', 'No Query String')
 
-    # Print HTTP headers
-    print("HTTP/1.0 200 OK")
-    print("Content-Type: text/html\n")  # Note the \n for a new line
-
     # HTML response using html.escape to prevent XSS attacks
     print(f"""<!DOCTYPE html>
     <html>
