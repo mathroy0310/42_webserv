@@ -116,9 +116,9 @@
 #define ERR_MSG_INVALID_METHOD(arg) ERR_PREFIX << "Invalid method: " + std::string(arg) << RESET_NL
 #define ERR_MSG_INVALID_DIRECTIVE(arg) ERR_PREFIX << "Invalid directive: " + std::string(arg) << RESET_NL
 
-#define ERR_PAGE(name)                                                                                    \
-    "<html><head><title>" + std::string(name) + "</title></head><body><center><h1>" + std::string(name) + \
-        "</h1></center><hr><center>webserv</center></body></html>"
+#define ERR_PAGE(err, name)                                                                                    \
+    "<html><head><title>" + std::string(err) + "</title></head><body><center><h1>" + std::string(err) + \
+        "</h1></center><hr><center>" + name + "</center></body></html>"
 #define DEFAULT_PAGE                                                                                                   \
     "<!DOCTYPE html><html><head><title>Welcome to "                                                                    \
     "Webserv!</"                                                                                                       \

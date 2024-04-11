@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/08 21:46:08 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 16:03:07 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,15 @@ static bool findAllowedMethod(const std::string &method, const t_server &server,
         bool in_server = isMethodAllowed(method, server.allowed_methods);
         return (in_location || (location->allowed_methods.empty() && in_server));
     }
+}
+
+const std::string getExtension(const std::string &path) {
+    std::string extension;
+    size_t dot = path.find_last_of('.');
+    if (dot != path.npos) {
+        extension = path.substr(dot, path.length());
+    }
+    return (extension);
 }
 
 HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
@@ -67,15 +76,6 @@ HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
         std::cerr << ERR_PREFIX << "request " << status << FILE_LINE;
     } catch (std::exception &e) {
     }
-}
-
-const std::string getExtension(const std::string &path) {
-    std::string extension;
-    size_t dot = path.find_last_of('.');
-    if (dot != path.npos) {
-        extension = path.substr(dot, path.length());
-    }
-    return (extension);
 }
 
 void HTTPResponse::defaultPage(void) {
@@ -276,6 +276,7 @@ void HTTPResponse::setHeaders(int status) {
         this->_s_header += "HTTP/1.1 ";
         this->_s_header += this->_status_codes[status] + "\r\n";
         this->_s_header += "Connection: keep-alive\r\n";
+        this->_server.server_name.empty() ? "" : this->_s_header += "Server: " + this->_server.server_name + "\r\n";
         this->_s_header += "Accept-Ranges: bytes\r\n";
         this->_s_header += "Content-Type: " + this->mime_type + "\r\n";
         this->_s_header += "Content-Length: " + std::to_string(this->_content_length) + "\r\n";
@@ -319,27 +320,27 @@ const t_server &HTTPResponse::getServer(void) const {
 }
 
 std::string HTTPResponse::fileToString(const std::string &file_path, int error_status) {
-	std::ifstream current_file;
+    std::ifstream current_file;
     if (!current_file.is_open()) {
         current_file.open(file_path.c_str());
         struct stat fs;
         Logger::get().log(DEBUG, "file_path: %s", file_path.c_str());
         if (stat(file_path.c_str(), &fs) == 0)
             this->_content_length = fs.st_size;
-	}
+    }
     if (!current_file.is_open()) {
-        throw std::runtime_error(ERR_PAGE(this->_status_codes[error_status]));
+        throw std::runtime_error(ERR_PAGE(this->_status_codes[error_status], this->_server.server_name));
     }
 
     char buffer[BUFFER_SIZE + 1];
     bzero(buffer, BUFFER_SIZE + 1);
     current_file.read(buffer, BUFFER_SIZE);
     std::string result(buffer, current_file.gcount());
-	while (current_file.gcount() > 0) {
-		bzero(buffer, BUFFER_SIZE + 1);
-		current_file.read(buffer, BUFFER_SIZE);
-		result += std::string(buffer, current_file.gcount());
-	}
+    while (current_file.gcount() > 0) {
+        bzero(buffer, BUFFER_SIZE + 1);
+        current_file.read(buffer, BUFFER_SIZE);
+        result += std::string(buffer, current_file.gcount());
+    }
     return (result);
 }
 
@@ -395,33 +396,34 @@ void HTTPResponse::listDirectory(DIR *dir) {
         is_autoindex = this->getServer().is_autoindex;
     }
 
-
-	std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
-	Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
-	Logger::get().log(DEBUG, "index: %s", index.c_str());
-	if (index.empty()) {
-		try {
-			this->setContentType(".html");
-			this->servFile(indexFile, OK_STATUS, 0);
-			return;
-		} catch (const std::exception &e) {
-			this->_is_header_done = false;
-		}
-	} else if (!index.empty()) {
-		if (index[0] == '/')
-			throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
-		indexFile = this->_path + index;
-		this->setContentType(getExtension(indexFile));
-		Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
-		return (servFile(indexFile, OK_STATUS, NOT_FOUND_STATUS));
-	}
-	Logger::get().log(DEBUG, "directory_listing");
-	this->_body = directory_listing(dir, this->_request->getValueByKey(REQ_PATH));
-	this->_content_length = this->_body.length();
-	this->setContentType(".html");
-	this->setHeaders(OK_STATUS);
-	this->_s_response = this->_s_header + this->_body;
-	this->_s_header.clear();
+    std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
+    Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
+    Logger::get().log(DEBUG, "index: %s", index.c_str());
+    if (index.empty()) {
+        try {
+            this->setContentType(".html");
+            this->servFile(indexFile, OK_STATUS, 0);
+            return;
+        } catch (const std::exception &e) {
+            this->_is_header_done = false;
+        }
+    } else if (!index.empty()) {
+        if (index[0] == '/')
+            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        indexFile = this->_path + index;
+        this->setContentType(getExtension(indexFile));
+        Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
+        return (servFile(indexFile, OK_STATUS, NOT_FOUND_STATUS));
+    }
+    if (!is_autoindex)
+        throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
+    Logger::get().log(DEBUG, "directory_listing");
+    this->_body = directory_listing(dir, this->_request->getValueByKey(REQ_PATH));
+    this->_content_length = this->_body.length();
+    this->setContentType(".html");
+    this->setHeaders(OK_STATUS);
+    this->_s_response = this->_s_header + this->_body;
+    this->_s_header.clear();
 }
 
 void HTTPResponse::methodNotAllowed(void) {
@@ -461,6 +463,35 @@ void HTTPResponse::locationRedirection() {
     this->_s_header.clear();
 }
 
+void HTTPResponse::HandlePostMethod(DIR *dir) {
+    std::string cgi_ext;
+    std::string cgi_exec;
+    // unsigned int requested_content_lenght = this->_request->getContentLenght();
+    unsigned int max_content_lenght;
+
+    (void)dir;
+    cgi_ext = getExtension(this->_path);
+    if (!this->_server.cgi.empty()) {
+        cgi_exec = this->_server.cgi[cgi_ext];
+        max_content_lenght = this->_server.max_body_size;
+    } else {
+        t_location location = this->getLocation();
+        cgi_exec = location.cgi[cgi_ext];
+        max_content_lenght = location.max_body_size;
+        if (max_content_lenght == 0)
+            max_content_lenght = this->_server.max_body_size;
+    }
+    // if (max_content_lenght < requested_content_lenght)
+    // 	throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
+    Logger::get().log(DEBUG, "CGI_EXEC: %s", cgi_exec.c_str());
+    Logger::get().log(DEBUG, "CGI_EXT: %s", cgi_ext.c_str());
+    if (!cgi_exec.empty()) {
+        CGIHandler cgi(this->_request, this->_server, this->_path);
+        t_location location = this->getLocation();
+        this->_s_response = cgi.executeCGI(location);
+    }
+}
+
 std::string HTTPResponse::buildResponse(void) {
     if (this->_is_default_page_flag == true)
         return (this->_s_response);
@@ -471,9 +502,15 @@ std::string HTTPResponse::buildResponse(void) {
         if (!this->_server.redirect_to.empty() ||
             (this->_location_index > -1 && !this->getLocation().redirect_to.empty())) {
             this->locationRedirection();
+        } else if (this->_request->getValueByKey(REQ_METHOD) == "POST") {
+            this->HandlePostMethod(dir);
         } else if (dir) {
             Logger::get().log(DEBUG, "listDirectory");
             this->listDirectory(dir);
+        } else if (this->_server.is_cgi) {
+            CGIHandler cgi(this->_request, this->_server, this->_path);
+            t_location location = this->getLocation();
+            this->_s_response = cgi.executeCGI(location);
         } else {
             this->servFile(this->_path, OK_STATUS, NOT_FOUND_STATUS);
         }

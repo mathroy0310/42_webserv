@@ -118,8 +118,8 @@ void Server::read_socket(Client &client) {
     if (len == -1)
         client.disconnect();
     else if (len == 0)
-		client.disconnect();
-        //throw std::runtime_error("Client disconnected");
+		//client.disconnect();
+        throw std::runtime_error("Client disconnected");
     if (!client.getRequest()->getHeaderEnd()) {
         try {
             client.getRequest()->appendHeader(buffer, len);

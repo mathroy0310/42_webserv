@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/10 15:27:54 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 15:53:05 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,13 @@ typedef struct s_location {
     int redirect_code;
     std::string redirect_to;
     bool is_autoindex;
+    bool is_cgi;
     unsigned long long max_body_size;
     std::string path;
     std::string root;
     std::string index;
     std::vector<std::string> allowed_methods;
-	std::map<std::string, std::string> cgi;
+    std::map<std::string, std::string> cgi;
     std::map<unsigned int, std::string> error_pages;
 } t_location;
 
@@ -43,6 +44,7 @@ typedef struct s_server {
     int port;
     std::string ip_address;
     bool is_autoindex;
+    bool is_cgi;
     unsigned long long max_body_size;
     size_t max_client_size;
     std::string server_name;
@@ -50,7 +52,7 @@ typedef struct s_server {
     std::string index;
     std::vector<std::string> allowed_methods;
     std::map<unsigned int, std::string> error_pages;
-	std::map<std::string, std::string> cgi;
+    std::map<std::string, std::string> cgi;
     std::vector<t_location> locations;
 } t_server;
 

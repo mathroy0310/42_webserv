@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 21:09:39 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/10 15:27:36 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 15:52:29 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,10 @@ void parse_location_directives(std::string &key, std::string &value, t_location 
     else if (key == "max_body_size")
         location.max_body_size = set_max_body_size(value, key);
 	else if (key == "cgi")
+	{
 		set_cgi_ext(value, key, location.cgi);
+		location.is_cgi = true;
+	}
     else {
         std::cerr << ERR_MSG_INVALID_DIRECTIVE(key) << FILE_LINE;
         exit(EXIT_FAILURE);
@@ -62,6 +65,7 @@ void parse_location_lines(std::string &line, t_location &location) {
 
 static void init(t_location &location) {
     location.is_autoindex = false;
+	location.is_cgi = false;
     location.max_body_size = 0;
     location.redirect_code = -1;
     location.index = "";

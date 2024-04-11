@@ -6,14 +6,17 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/08 18:52:46 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 15:46:42 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Request/HTTPRequest.hpp"
+#include "CGIHandler/CGIHandler.hpp"
 #include "defines.h"
+
+class CGIHandler;
 
 class HTTPResponse {
   public:
@@ -59,6 +62,7 @@ class HTTPResponse {
     void locationExists(void);
     void methodNotAllowed(void);
     void locationRedirection(void);
+	void HandlePostMethod(DIR *dir);
 
     // Attributes
     std::string _version;
