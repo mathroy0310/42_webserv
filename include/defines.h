@@ -22,16 +22,20 @@
 /**********/
 /* Logger */
 /**********/
+
 #include "Logger/Logger.hpp"
 /***********/
 /*  Macros */
 /***********/
+
 #define MAX_CLIENTS SOMAXCONN
 // #define BUFFER_SIZE 16384
+
 #define BUFFER_SIZE 4096
 /**********/
 /* Colors */
 /**********/
+
 #define RESET_COLOR "\033[0m"
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
@@ -45,6 +49,7 @@
 /************/
 /* Prefixes */
 /************/
+
 #define ERR_PREFIX RED "Error: "
 #define WARN_PREFIX YELLOW "Warning: "
 #define INFO_PREFIX CYAN "Info: "
@@ -53,11 +58,13 @@
 /*********************/
 /* Debugging Macros */
 /*********************/
+
 #define FILE_LINE YELLOW "[" << __FILE__ << ":" << __LINE__ << "]" << RESET_COLOR << std::endl
 
 /**************************/
 /* HTTP Request Constants */
 /**************************/
+
 #define REQ_METHOD "Request-Method"
 #define REQ_PATH "REQUEST_URI"
 #define REQ_HTTP_VERSION "Server-Protocol"
@@ -76,7 +83,11 @@
 /*********************/
 /* HTTP Status Codes */
 /*********************/
+
 #define OK_STATUS 200
+#define CREATED_STATUS 201
+#define ACCEPTED_STATUS 202
+#define NO_CONTENT_STATUS 204
 #define MOVED_PERMANENTLY_STATUS 301
 #define FOUND_STATUS 302
 #define SEE_OTHER_STATUS 303
@@ -98,6 +109,7 @@
 /******************/
 /* Error Messages */
 /******************/
+
 #define RESET_NL RESET_COLOR << std::endl
 #define ERR_MSG_USAGE(arg) ERR_PREFIX << "Usage: " + std::string(arg) + " [file]" << RESET_NL
 #define ERR_MSG_READ(arg) ERR_PREFIX << std::string(arg) + " " + strerror(errno) << RESET_NL

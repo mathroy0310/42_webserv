@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/11 18:17:32 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 19:50:23 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,20 +47,25 @@ HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
 void HTTPResponse::initStatusCodeMap(void) {
     this->_status_codes[200] = "200 OK";
     this->_status_codes[201] = "201 Created";
+    this->_status_codes[202] = "202 Accepted";
     this->_status_codes[204] = "204 No Content";
     this->_status_codes[301] = "301 Moved Permanently";
+    this->_status_codes[302] = "302 Found";
+    this->_status_codes[303] = "303 See Other";
     this->_status_codes[304] = "304 Not Modified";
     this->_status_codes[400] = "400 Bad Request";
+    this->_status_codes[401] = "401 Unauthorized";
+    this->_status_codes[402] = "402 Payment Required";
     this->_status_codes[403] = "403 Forbidden";
     this->_status_codes[404] = "404 Not Found";
     this->_status_codes[405] = "405 Method Not Allowed";
-    this->_status_codes[409] = "409 Conflict";
     this->_status_codes[413] = "413 Content Too Large";
     this->_status_codes[415] = "415 Unsupported Media Type";
     this->_status_codes[418] = "418 I'm a teapot";
     this->_status_codes[500] = "500 Internal Server Error";
     this->_status_codes[501] = "501 Not Implemented";
-    this->_status_codes[504] = "504 Gateway Timeout";
+    this->_status_codes[502] = "502 Bad Gateway";
+    this->_status_codes[503] = "503 Service Unavailable";
     this->_status_codes[505] = "505 HTTP Version Not Supported";
 }
 
@@ -496,7 +501,7 @@ std::string HTTPResponse::buildResponse(void) {
     if (this->_is_default_page_flag == true)
         return (this->_s_response);
     DIR *dir = opendir(this->_path.c_str());
-	t_location location = this->getLocation();
+    t_location location = this->getLocation();
     try {
         std::string requested_method = this->_request->getValueByKey(REQ_METHOD);
         methodNotAllowed();
