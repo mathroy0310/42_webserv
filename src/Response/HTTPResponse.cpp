@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/11 19:50:23 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:38:25 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
     this->_is_uploaded = true;
     this->_content_length = 0;
     this->_location_index = -1;
+	this->_upload_file_size = -1;
     this->_is_default_page_flag = false;
     this->initStatusCodeMap();
     try {
@@ -101,6 +102,7 @@ HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     this->_is_default_page_flag = false;
     this->_content_length = 0;
     this->_location_index = -1;
+    this->_upload_file_size = -1;
     if (this->_request)
         this->setContentType(getExtension(this->_request->getValueByKey(REQ_PATH)));
     this->initStatusCodeMap();
@@ -468,33 +470,145 @@ void HTTPResponse::locationRedirection() {
     this->_s_header.clear();
 }
 
+#define WRITE_BUFFER_SIZE 1000000
+
+std::string HTTPResponse::getBoundary() {
+    std::string tmp = "boundary=";
+    const std::string &req_con_type = this->_request->getValueByKey(REQ_CONTENT_TYPE);
+    size_t index = req_con_type.find(tmp);
+    if (index != std::string::npos)
+        return ("--" + req_con_type.substr(index + tmp.length(), -1));
+    throw std::runtime_error(this->returnError(BAD_REQUEST_STATUS));
+}
+
+static std::string getFileName(const std::string &head) {
+    size_t filenamePos = head.find("filename=");
+    if (filenamePos != std::string::npos) {
+        std::string filenameSubstring = head.substr(filenamePos + 10);
+        size_t quotePos = filenameSubstring.find(head[filenamePos + 9]);
+        if (quotePos != std::string::npos) {
+            std::string filename = filenameSubstring.substr(0, quotePos);
+            return (filename);
+        } else
+            throw(BAD_REQUEST_STATUS);
+    } else {
+        return ("");
+    }
+}
+
+bool HTTPResponse::uploadFile(std::string &upload_path) {
+    std::string &upload_body = this->_request->getBody();
+    std::string boundary = getBoundary();
+    std::string upload_head;
+    size_t upload_pos;
+    std::ofstream upload_of;
+
+    if (upload_head.empty()) {
+        std::size_t index = upload_body.find("\r\n\r\n");
+        if (index != std::string::npos) {
+            upload_head.reserve(index + 4);
+            upload_head = upload_body.substr(0, index + 4);
+            upload_body.erase(0, index + 4);
+            upload_pos = 0;
+        }
+        std::string filename = getFileName(upload_head);
+        if (upload_head.find("filename") != std::string::npos) {
+            upload_of.open(upload_path + (upload_path[upload_path.length() - 1] == '/' ? "" : "/") + filename,
+                           std::ios::out | std::ios::binary);
+        }
+        this->_upload_file_size = upload_body.find("\r\n" + boundary);
+    }
+    if (this->_upload_file_size != std::string::npos) {
+        size_t i = static_cast<size_t>(upload_of.tellp());
+        if (i < this->_upload_file_size) {
+            size_t write_size = static_cast<size_t>(WRITE_BUFFER_SIZE);
+            if ((i + WRITE_BUFFER_SIZE) > this->_upload_file_size)
+                write_size = this->_upload_file_size - i;
+            std::cout << write_size << " uploaded\n";
+            std::cout.flush();
+            upload_of.write(upload_body.c_str() + upload_pos, write_size);
+            upload_pos += write_size;
+            upload_of.flush();
+            return false;
+        } else {
+            upload_of.close();
+            upload_body.erase(0, this->_upload_file_size + ("\r\n" + boundary).length());
+            upload_pos = 0;
+            upload_head.clear();
+        }
+    }
+    if (upload_body == "--\r\n") {
+        return true;
+    }
+    return false;
+}
+
 void HTTPResponse::HandlePostMethod(DIR *dir) {
     std::string cgi_ext;
     std::string cgi_exec;
-    // unsigned int requested_content_lenght = this->_request->getContentLenght();
-    unsigned int max_content_lenght;
+    std::string index;
+    std::string upload_path;
+    size_t requested_content_lenght = this->_request->getContentLenght();
+    size_t max_content_lenght = 0;
 
-    (void)dir;
     cgi_ext = getExtension(this->_path);
-    if (!this->_server.cgi.empty()) {
-        cgi_exec = this->_server.cgi[cgi_ext];
-        max_content_lenght = this->_server.max_body_size;
-    } else {
+    if (this->_location_index > -1) {
         t_location location = this->getLocation();
         cgi_exec = location.cgi[cgi_ext];
+        index = location.index;
+        upload_path = location.upload_path;
         max_content_lenght = location.max_body_size;
         if (max_content_lenght == 0)
             max_content_lenght = this->_server.max_body_size;
+    } else {
+        cgi_exec = this->_server.cgi[cgi_ext];
+        index = this->_server.index;
+        upload_path = this->_server.upload_path;
+        max_content_lenght = this->_server.max_body_size;
     }
-    // if (max_content_lenght < requested_content_lenght)
-    // 	throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
-    Logger::get().log(DEBUG, "CGI_EXEC: %s", cgi_exec.c_str());
-    Logger::get().log(DEBUG, "CGI_EXT: %s", cgi_ext.c_str());
-    if (!cgi_exec.empty()) {
+    if (requested_content_lenght > max_content_lenght) {
+        std::cout << "config: " << max_content_lenght << " | request: " << requested_content_lenght << std::endl;
+        throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
+    }
+    if (this->_location_index > -1 && !index.empty()) {
         CGIHandler cgi(this->_request, this->_server, this->_path);
         t_location location = this->getLocation();
         this->_s_response = cgi.executeCGI(location);
     }
+    if (!upload_path.empty()) {
+        DIR *upload_dir = opendir(upload_path.c_str());
+        if (!upload_dir)
+            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        closedir(upload_dir);
+        if (this->uploadFile(upload_path)) {
+            std::string body = UPLOADED_DEFAULT_PAGE;
+            this->_content_length = body.length();
+            this->setContentType(".html");
+            this->setHeaders(OK_STATUS);
+            this->_s_response = this->_s_header + body;
+            this->_is_uploaded = true;
+            return;
+        }
+        this->_is_uploaded = false;
+        return;
+    } else {
+        if (access(this->_path.c_str(), F_OK) < 0)
+            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        if (dir) {
+            if (!index.empty() && cgi_exec.empty()) {
+                CGIHandler cgi(this->_request, this->_server, this->_path + index);
+                t_location location = this->getLocation();
+                this->_s_response = cgi.executeCGI(location);
+            }
+        } else {
+            if (!cgi_exec.empty()) {
+                CGIHandler cgi(this->_request, this->_server, this->_path);
+                t_location location = this->getLocation();
+                this->_s_response = cgi.executeCGI(location);
+            }
+        }
+    }
+    throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
 }
 
 std::string HTTPResponse::buildResponse(void) {
@@ -506,14 +620,13 @@ std::string HTTPResponse::buildResponse(void) {
         std::string requested_method = this->_request->getValueByKey(REQ_METHOD);
         methodNotAllowed();
         if (!this->_server.redirect_to.empty() ||
-            (this->_location_index > -1 && !this->getLocation().redirect_to.empty())) {
+            (this->_location_index > -1 && !this->getLocation().redirect_to.empty()))
             this->locationRedirection();
-        } else if (this->_request->getValueByKey(REQ_METHOD) == "POST") {
+        else if (requested_method == "POST")
             this->HandlePostMethod(dir);
-        } else if (dir) {
-            Logger::get().log(DEBUG, "listDirectory");
+        else if (dir)
             this->listDirectory(dir);
-        } else if (location.is_cgi == true) {
+        else if (this->_location_index > -1 && location.is_cgi == true) {
             CGIHandler cgi(this->_request, this->_server, this->_path);
             this->_s_response = cgi.executeCGI(location);
         } else {

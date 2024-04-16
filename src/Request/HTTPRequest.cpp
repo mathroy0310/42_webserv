@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/08 21:18:02 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:29:22 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,10 @@ std::string HTTPRequest::getMethod(void) {
 
 std::string HTTPRequest::getURI(void) {
     return (this->_headers[REQ_PATH]);
+}
+
+std::string &HTTPRequest::getBody(void) {
+    return (this->_body);
 }
 
 bool HTTPRequest::getHeaderEnd(void) const {

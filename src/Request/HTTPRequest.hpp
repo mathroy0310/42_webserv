@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:11 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/05 21:04:36 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:29:29 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class HTTPRequest {
     // Getters
     std::string getMethod(void);
     std::string getURI(void);
+    std::string &getBody(void);
     std::map<std::string, std::string> getHeaders(void) const;
     bool getHeaderEnd(void) const;
     size_t getContentLenght(void);

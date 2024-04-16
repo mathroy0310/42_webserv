@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/11 18:19:09 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:12:22 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,8 @@ static void init(t_server &server) {
     server.port = -1;
     server.server_name = "";
     server.root = "";
-    //server.index = "index.html";
+    server.index = "";
+    server.upload_path = "";
     server.redirect_code = -1;
 }
 

@@ -6,11 +6,12 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/08 17:58:53 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/11 17:19:58 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/11 22:23:51 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGIHandler.hpp"
+#include <sys/wait.h>
 
 extern char **environ;
 

@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/11 15:53:05 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:12:02 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ typedef struct s_location {
     std::string path;
     std::string root;
     std::string index;
+	std::string upload_path;
     std::vector<std::string> allowed_methods;
     std::map<std::string, std::string> cgi;
     std::map<unsigned int, std::string> error_pages;
@@ -50,6 +51,7 @@ typedef struct s_server {
     std::string server_name;
     std::string root;
     std::string index;
+    std::string upload_path;
     std::vector<std::string> allowed_methods;
     std::map<unsigned int, std::string> error_pages;
     std::map<std::string, std::string> cgi;
@@ -95,6 +97,7 @@ t_location parse_location_block(std::string line);
 
 std::vector<std::string> set_allowed_methods(std::string &value, const std::string &key);
 std::string set_index(std::string &value, const std::string &key);
+std::string set_upload_path(std::string &value, const std::string &key);
 bool set_autoindex(std::string &value, const std::string &key);
 std::string set_root(std::string &value, const std::string &key);
 std::string set_server_name(std::string &value, const std::string &key);

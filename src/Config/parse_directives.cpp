@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 20:48:46 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/11 16:16:21 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:06:45 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,15 @@ std::string set_index(std::string &value, const std::string &key) {
         exit(EXIT_FAILURE);
     }
     return (value);
+}
+
+std::string set_upload_path(std::string &value, const std::string &key)
+{
+	if (value.empty() || value == ";") {
+		std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
+		exit(EXIT_FAILURE);
+	}
+	return (value);
 }
 
 bool set_autoindex(std::string &value, const std::string &key) {

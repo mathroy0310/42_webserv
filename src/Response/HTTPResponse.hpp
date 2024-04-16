@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/11 15:46:42 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/13 00:34:11 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,14 +63,17 @@ class HTTPResponse {
     void methodNotAllowed(void);
     void locationRedirection(void);
 	void HandlePostMethod(DIR *dir);
+	bool uploadFile(std::string &upload_path);
+    std::string getBoundary();
 
-    // Attributes
-    std::string _version;
+        // Attributes
+        std::string _version;
     std::string _status_code;
     std::string _status_message;
     std::map<std::string, std::string> _headers;
     std::string _body;
-
+	size_t _upload_file_size;
+	
    
     long long _content_length;
     int _location_index;
