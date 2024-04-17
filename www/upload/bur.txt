@@ -1,7 +1,0 @@
-
-
-object id		452250
-string index 		73
-sound_defs_index	47
-name_string_table_index 174
-event string		4525

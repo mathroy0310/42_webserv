@@ -1,7 +1,9 @@
 #!/usr/bin/bash
 # Read the value of 'name' parameter from the query string
-name=$(echo "$QUERY_STRING" | awk -F '=' '{print $2}')
+name=$(echo "$QUERY_STRING" | awk -F '=' '{print $2}' | sed 's/+/ /g')
 # Output HTML response with the formatted name
+echo "Content-type: text/html"
+echo ""
 echo "<!DOCTYPE html>"
 echo "<html>"
 echo "<head>"

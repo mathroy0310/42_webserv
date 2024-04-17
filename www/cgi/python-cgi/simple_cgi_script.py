@@ -16,7 +16,8 @@ def main():
     query_string = os.environ.get('QUERY_STRING', 'No Query String')
 
     # HTML response using html.escape to prevent XSS attacks
-    print(f"""<!DOCTYPE html>
+    print(f"Content-type: text/html"
+    """<!DOCTYPE html>
     <html>
     <head>
         <title>Hello, {escape(name)}!</title>

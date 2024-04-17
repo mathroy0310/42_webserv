@@ -12,7 +12,7 @@ class Client {
   public:
     // Constructors & Destructors
     Client(int socket_fd, t_server server);
-    // new stuff here
+    ~Client(void);  // new stuff here
     void setRequest(HTTPRequest *request);
     void setResponse(HTTPResponse *response);
     void setStatus(int status_code);

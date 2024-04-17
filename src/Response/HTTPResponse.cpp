@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/13 00:38:25 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/16 23:40:37 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,16 +66,18 @@ void HTTPResponse::initStatusCodeMap(void) {
     this->_status_codes[501] = "501 Not Implemented";
     this->_status_codes[502] = "502 Bad Gateway";
     this->_status_codes[503] = "503 Service Unavailable";
+    this->_status_codes[504] = "504 Gateway Timeout";
     this->_status_codes[505] = "505 HTTP Version Not Supported";
 }
 
 HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
+    this->cgi = NULL;
     this->_request = NULL;
     this->_is_header_done = false;
     this->_is_uploaded = true;
     this->_content_length = 0;
     this->_location_index = -1;
-	this->_upload_file_size = -1;
+    this->_upload_file_size = -1;
     this->_is_default_page_flag = false;
     this->initStatusCodeMap();
     try {
@@ -98,6 +100,7 @@ static void correctPath(std::string &path);
 
 HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     : _request(request), _is_header_done(false), _server(server) {
+    this->cgi = NULL;
     this->_is_uploaded = true;
     this->_is_default_page_flag = false;
     this->_content_length = 0;
@@ -264,7 +267,10 @@ bool HTTPResponse::getUploaded(void) const {
     return (this->_is_uploaded);
 }
 
-HTTPResponse::~HTTPResponse(void) {}
+HTTPResponse::~HTTPResponse(void) {
+	if (this->cgi)
+		delete this->cgi;
+}
 
 void HTTPResponse::setVersion(const std::string &version) {
     this->_version = version;
@@ -385,7 +391,7 @@ void HTTPResponse::servFile(const std::string &file_path, int status, int error_
         this->_s_response = this->_s_header + this->_body;
         this->_s_header.clear();
     } catch (std::exception &e) {
-        if (error_status == 200)
+        if (error_status == OK_STATUS)
             throw;
         throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
     }
@@ -403,6 +409,8 @@ void HTTPResponse::listDirectory(DIR *dir) {
         is_autoindex = this->getServer().is_autoindex;
     }
 
+    if (directoryRedirection())
+        return;
     std::string indexFile = this->_path + (this->_path[this->_path.length() - 1] != '/' ? "/" : "") + "index.html";
     Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
     Logger::get().log(DEBUG, "index: %s", index.c_str());
@@ -443,6 +451,23 @@ void HTTPResponse::methodNotAllowed(void) {
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
     else if (findAllowedMethod(method, this->_server, location) == false)
         throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
+}
+
+bool HTTPResponse::directoryRedirection() {
+    std::string request_path = this->_request->getValueByKey(REQ_PATH);
+    if (request_path.length() > 1 && request_path[request_path.length() - 1] != '/') {
+        if (!this->_is_header_done) {
+            this->_s_header = "HTTP/1.1 ";
+            this->_s_header += this->_status_codes[MOVED_PERMANENTLY_STATUS] + "\r\n";
+            this->_s_header += "Content-Lenght: 0\r\n";
+            this->_s_header += "Location: " + request_path + "/\r\n";
+            this->_s_header += "\r\n";
+            this->_is_header_done = true;
+        }
+        this->_s_response = this->_s_header;
+        return (true);
+    }
+    return (false);
 }
 
 void HTTPResponse::locationRedirection() {
@@ -499,42 +524,39 @@ static std::string getFileName(const std::string &head) {
 bool HTTPResponse::uploadFile(std::string &upload_path) {
     std::string &upload_body = this->_request->getBody();
     std::string boundary = getBoundary();
-    std::string upload_head;
-    size_t upload_pos;
-    std::ofstream upload_of;
 
-    if (upload_head.empty()) {
+    if (this->_upload_head.empty()) {
         std::size_t index = upload_body.find("\r\n\r\n");
         if (index != std::string::npos) {
-            upload_head.reserve(index + 4);
-            upload_head = upload_body.substr(0, index + 4);
+            this->_upload_head.reserve(index + 4);
+            this->_upload_head = upload_body.substr(0, index + 4);
             upload_body.erase(0, index + 4);
-            upload_pos = 0;
+            this->_upload_pos = 0;
         }
-        std::string filename = getFileName(upload_head);
-        if (upload_head.find("filename") != std::string::npos) {
-            upload_of.open(upload_path + (upload_path[upload_path.length() - 1] == '/' ? "" : "/") + filename,
-                           std::ios::out | std::ios::binary);
+        std::string filename = getFileName(this->_upload_head);
+        if (this->_upload_head.find("filename") != std::string::npos) {
+            this->_upload_of.open(upload_path + (upload_path[upload_path.length() - 1] == '/' ? "" : "/") + filename,
+                                  std::ios::out | std::ios::binary);
         }
         this->_upload_file_size = upload_body.find("\r\n" + boundary);
     }
     if (this->_upload_file_size != std::string::npos) {
-        size_t i = static_cast<size_t>(upload_of.tellp());
+        size_t i = static_cast<size_t>(this->_upload_of.tellp());
         if (i < this->_upload_file_size) {
             size_t write_size = static_cast<size_t>(WRITE_BUFFER_SIZE);
             if ((i + WRITE_BUFFER_SIZE) > this->_upload_file_size)
                 write_size = this->_upload_file_size - i;
-            std::cout << write_size << " uploaded\n";
-            std::cout.flush();
-            upload_of.write(upload_body.c_str() + upload_pos, write_size);
-            upload_pos += write_size;
-            upload_of.flush();
+
+            Logger::get().log(INFO, "%lu Bytes Uploaded", write_size);
+            this->_upload_of.write(upload_body.c_str() + this->_upload_pos, write_size);
+            this->_upload_pos += write_size;
+            this->_upload_of.flush();
             return false;
         } else {
-            upload_of.close();
+            this->_upload_of.close();
             upload_body.erase(0, this->_upload_file_size + ("\r\n" + boundary).length());
-            upload_pos = 0;
-            upload_head.clear();
+            this->_upload_pos = 0;
+            this->_upload_head.clear();
         }
     }
     if (upload_body == "--\r\n") {
@@ -543,7 +565,105 @@ bool HTTPResponse::uploadFile(std::string &upload_path) {
     return false;
 }
 
+#include <fcntl.h>
+#include <sys/wait.h>
+
+void HTTPResponse::executeCGI(void) {
+
+    if (!cgi) {
+        Logger::get().log(DEBUG, "executeCGI");
+        std::string cgi_ext;
+        std::string cgi_exec;
+
+        t_location location = this->getLocation();
+        cgi_ext = getExtension(this->_path);
+        if (!this->_server.cgi.empty()) {
+            cgi_exec = this->_server.cgi[cgi_ext];
+        } else {
+            cgi_exec = location.cgi[cgi_ext];
+        }
+        if (cgi_exec.empty() || cgi_ext.empty())
+            throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
+
+        int fd[2];
+        if (pipe(fd) == -1) {
+            std::cerr << FILE_LINE;
+            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+        }
+
+        pid_t pid = fork();
+        if (pid == -1) {
+            std::cerr << FILE_LINE;
+            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+        }
+        this->cgi = new CGIHandler(this->_request, this->_server, this->_path + cgi_exec);
+        cgi->setFdIn(fd[0]);
+        cgi->setFdOut(fd[1]);
+        cgi->setPid(pid);
+        if (pid == 1) {
+            if (write(fd[1], this->_request->getBody().c_str(), this->_request->getBody().length()) == -1) {
+                std::cerr << FILE_LINE;
+                throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+            }
+        }
+        if (pid == 0) {
+            dup2(fd[0], STDIN_FILENO);
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[0]);
+            close(fd[1]);
+            char *const argv[] = {const_cast<char *>(cgi_exec.c_str()), const_cast<char *>(this->_path.c_str()), NULL};
+            execve(cgi_exec.c_str(), argv, cgi->getEnv());
+            perror("execve : ");
+            exit(1);
+        }
+        int status;
+        clock_t start_time = clock() / CLOCKS_PER_SEC;
+        int res = 0;
+        do {
+            clock_t current_time = clock() / CLOCKS_PER_SEC;
+            if (current_time - start_time > 5)
+                break;
+            res = waitpid(cgi->getPid(), &status, WNOHANG);
+        } while (res == 0);
+
+        if (res == 0) {
+            throw std::runtime_error(this->returnError(GATEWAY_TIMEOUT_STATUS));
+        }
+        if (WIFEXITED(status))
+            status = WEXITSTATUS(status);
+        if (status) {
+            std::cout << "exit with !0 status\n";
+            if (access(this->_path.c_str(), F_OK) < 0)
+                throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+            std::cerr << FILE_LINE;
+            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+        }
+
+        char buffer[BUFFER_SIZE + 1];
+        bzero(buffer, BUFFER_SIZE + 1);
+        fcntl(cgi->getFdIn(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        std::cout << "fdIn: " << cgi->getFdIn() << std::endl;
+        int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
+        if (b == -1) {
+            std::cerr << FILE_LINE;
+            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+        }
+        this->_body.clear();
+        this->_body.append(buffer, b);
+        if (!this->_is_header_done) {
+            size_t find_end_of_head = this->_body.find("\r\n\r\n");
+            if (find_end_of_head != this->_body.npos) {
+                this->_s_header.insert(0, this->_body.substr(0, find_end_of_head + 4));
+                this->_body = this->_body.substr(find_end_of_head + 4, -1);
+            }
+            this->_is_header_done = true;
+            this->_s_response = this->_s_header + this->_body;
+        }
+    }
+}
+
 void HTTPResponse::HandlePostMethod(DIR *dir) {
+    Logger::get().log(DEBUG, "HandlePostMethod");
     std::string cgi_ext;
     std::string cgi_exec;
     std::string index;
@@ -566,14 +686,14 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         upload_path = this->_server.upload_path;
         max_content_lenght = this->_server.max_body_size;
     }
+
     if (requested_content_lenght > max_content_lenght) {
-        std::cout << "config: " << max_content_lenght << " | request: " << requested_content_lenght << std::endl;
+        Logger::get().log(ERROR, "Content too large. Config: %lu | Request: %lu", max_content_lenght,
+                          requested_content_lenght);
         throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
     }
-    if (this->_location_index > -1 && !index.empty()) {
-        CGIHandler cgi(this->_request, this->_server, this->_path);
-        t_location location = this->getLocation();
-        this->_s_response = cgi.executeCGI(location);
+    if (this->_location_index > -1 && this->getLocation().is_cgi == true) {
+        this->executeCGI();
     }
     if (!upload_path.empty()) {
         DIR *upload_dir = opendir(upload_path.c_str());
@@ -592,22 +712,23 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         this->_is_uploaded = false;
         return;
     } else {
-        if (access(this->_path.c_str(), F_OK) < 0)
+        if (access(this->_path.c_str(), F_OK) < 0) {
+            Logger::get().log(ERROR, "File not found: %s", this->_path.c_str());
             throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        }
+        CGIHandler cgi(this->_request, this->_server, this->_path + index);
         if (dir) {
-            if (!index.empty() && cgi_exec.empty()) {
-                CGIHandler cgi(this->_request, this->_server, this->_path + index);
-                t_location location = this->getLocation();
-                this->_s_response = cgi.executeCGI(location);
-            }
+            if (directoryRedirection())
+                return;
+            if (!index.empty() && cgi_exec.empty())
+                this->executeCGI();
         } else {
             if (!cgi_exec.empty()) {
-                CGIHandler cgi(this->_request, this->_server, this->_path);
-                t_location location = this->getLocation();
-                this->_s_response = cgi.executeCGI(location);
+                this->executeCGI();
             }
         }
     }
+    Logger::get().log(ERROR, "Forbidden status");
     throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
 }
 
@@ -627,8 +748,7 @@ std::string HTTPResponse::buildResponse(void) {
         else if (dir)
             this->listDirectory(dir);
         else if (this->_location_index > -1 && location.is_cgi == true) {
-            CGIHandler cgi(this->_request, this->_server, this->_path);
-            this->_s_response = cgi.executeCGI(location);
+            this->executeCGI();
         } else {
             this->servFile(this->_path, OK_STATUS, NOT_FOUND_STATUS);
         }

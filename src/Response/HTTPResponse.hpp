@@ -6,14 +6,14 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/13 00:34:11 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/16 23:33:59 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "Request/HTTPRequest.hpp"
 #include "CGIHandler/CGIHandler.hpp"
+#include "Request/HTTPRequest.hpp"
 #include "defines.h"
 
 class CGIHandler;
@@ -47,6 +47,8 @@ class HTTPResponse {
     bool getUploaded(void) const;
 
   private:
+    void executeCGI(void);
+
     void initStatusCodeMap(void);
     void setContentType(const std::string &extension);
     void listDirectory(DIR *dir);
@@ -62,19 +64,24 @@ class HTTPResponse {
     void locationExists(void);
     void methodNotAllowed(void);
     void locationRedirection(void);
-	void HandlePostMethod(DIR *dir);
-	bool uploadFile(std::string &upload_path);
+    void HandlePostMethod(DIR *dir);
+    bool uploadFile(std::string &upload_path);
+
+    bool directoryRedirection();
     std::string getBoundary();
 
-        // Attributes
-        std::string _version;
+    // Attributes
+    std::string _version;
     std::string _status_code;
     std::string _status_message;
     std::map<std::string, std::string> _headers;
     std::string _body;
-	size_t _upload_file_size;
-	
-   
+
+    size_t _upload_file_size;
+    std::string _upload_head;
+    size_t _upload_pos;
+    std::ofstream _upload_of;
+
     long long _content_length;
     int _location_index;
     std::string _s_response;
@@ -87,4 +94,5 @@ class HTTPResponse {
     bool _is_uploaded;
     bool _is_default_page_flag;
     t_server _server;
+	CGIHandler *cgi;
 };

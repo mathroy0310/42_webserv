@@ -78,6 +78,7 @@
 		"__tree": "cpp",
 		"__functional_03": "cpp",
 		"filesystem": "cpp",
-		"cerrno": "cpp"
+		"cerrno": "cpp",
+		"cinttypes": "cpp"
 	}
 }

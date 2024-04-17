@@ -8,6 +8,15 @@ Client::Client(int socket_fd, t_server server) {
     this->_response = NULL;
 }
 
+Client::~Client(void) {
+	if (this->_request) {
+		delete this->_request;
+	}
+	if (this->_response) {
+		delete this->_response;
+	}
+}
+
 int Client::getSocketFd(void) const {
     return (this->_socket_fd);
 }

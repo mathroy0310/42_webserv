@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>Simple CGI Forms</title>
+	<title>CGI Forms</title>
 	<style>
 		body {
 			font-family: Arial, sans-serif;
@@ -10,20 +10,28 @@
 			padding: 0;
 			display: flex;
 			flex-wrap: wrap;
-			/* Allow multiple rows */
 			justify-content: center;
 			align-items: center;
 			height: 100vh;
 			background-color: #f7f7f7;
 		}
 
-		.form-container {
-			width: 300px;
+		.grid-container {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+			gap: 10px;
+			width: 100%;
+			max-width: 900px;
+			margin: 0 auto;
 			padding: 20px;
-			margin: 10px;
+			box-sizing: border-box;
+		}
+
+		.form-container {
 			background-color: #fff;
 			border-radius: 8px;
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			padding: 20px;
 		}
 
 		h2 {
@@ -73,40 +81,51 @@
 </head>
 
 <body>
-	<div class="form-container">
-		<h2>Simple Python CGI Form</h2>
-		<form action="/cgi/python-cgi/simple_cgi_script.py" method="get">
-			<label for="name">Name:</label>
-			<input type="text" id="name" name="name">
-			<button type="submit">Submit</button>
-		</form>
-	</div>
+	<div class="grid-container">
+		<div class="form-container">
+			<h2>Simple Python CGI Form</h2>
+			<form action="/cgi/python-cgi/simple_cgi_script.py" method="get">
+				<label for="name">Name:</label>
+				<input type="text" id="name" name="name">
+				<button type="submit">Submit</button>
+			</form>
+		</div>
 
-	<div class="form-container">
-		<h2>Simple Bash CGI Form</h2>
-		<form action="/cgi/bash-cgi/simple_cgi_script.sh" method="get">
-			<label for="name">Name:</label>
-			<input type="text" id="name" name="name">
-			<button type="submit">Submit</button>
-		</form>
-	</div>
+		<div class="form-container">
+			<h2>Simple Bash CGI Form</h2>
+			<form action="/cgi/bash-cgi/simple_cgi_script.sh" method="get">
+				<label for="name">Name:</label>
+				<input type="text" id="name" name="name">
+				<button type="submit">Submit</button>
+			</form>
+		</div>
 
-	<div class="form-container">
-		<h2>Simple PHP CGI Form</h2>
-		<form action="/cgi/php-cgi/simple_cgi_script.php" method="get">
-			<label for="name">Name:</label>
-			<input type="text" id="name" name="name">
-			<button type="submit">Submit</button>
-		</form>
-	</div>
+		<div class="form-container">
+			<h2>Simple PHP CGI Form</h2>
+			<form action="/cgi/php-cgi/simple_cgi_script.php" method="get">
+				<label for="name">Name:</label>
+				<input type="text" id="name" name="name">
+				<button type="submit">Submit</button>
+			</form>
+		</div>
 
-	<div class="form-container">
-		<h2>Upload CGI Test</h2>
-		<form enctype="multipart/form-data" action="/cgi/python-cgi/upload_cgi_script.py" method="post">
-			<label>File:</label>
-			<input type="file" name="filename">
-			<button type="submit">Submit</button>
-		</form>
+		<div class="form-container">
+			<h2>Simple CPP CGI Form</h2>
+			<form action="/cgi/cpp-cgi/simple_cgi_script.cpp" method="get">
+				<label for="name">Name:</label>
+				<input type="text" id="name" name="name">
+				<button type="submit">Submit</button>
+			</form>
+		</div>
+
+		<div class="form-container">
+			<h2>Upload CGI Test</h2>
+			<form enctype="multipart/form-data" action="/cgi/cpp-cgi/post_cgi_script.cpp" method="post">
+				<label>File:</label>
+				<input type="file" name="filename">
+				<button type="submit">Submit</button>
+			</form>
+		</div>
 	</div>
 </body>
 
