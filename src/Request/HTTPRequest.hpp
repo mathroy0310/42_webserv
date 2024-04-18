@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:11 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/13 00:29:29 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/18 01:06:52 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class HTTPRequest {
     std::string getMethod(void);
     std::string getURI(void);
     std::string &getBody(void);
-    std::map<std::string, std::string> getHeaders(void) const;
+    std::map<std::string, std::string> &getHeaders(void);
     bool getHeaderEnd(void) const;
     size_t getContentLenght(void);
     void addToHeader(std::string key, std::string value);

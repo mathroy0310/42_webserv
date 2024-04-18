@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/16 23:40:37 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/18 02:51:46 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,8 +268,8 @@ bool HTTPResponse::getUploaded(void) const {
 }
 
 HTTPResponse::~HTTPResponse(void) {
-	if (this->cgi)
-		delete this->cgi;
+    if (this->cgi)
+        delete this->cgi;
 }
 
 void HTTPResponse::setVersion(const std::string &version) {
@@ -570,95 +570,108 @@ bool HTTPResponse::uploadFile(std::string &upload_path) {
 
 void HTTPResponse::executeCGI(void) {
 
-    if (!cgi) {
-        Logger::get().log(DEBUG, "executeCGI");
-        std::string cgi_ext;
-        std::string cgi_exec;
+    if (cgi)
+        return;
+    Logger::get().log(DEBUG, "executeCGI");
+    std::string cgi_exec;
 
-        t_location location = this->getLocation();
-        cgi_ext = getExtension(this->_path);
-        if (!this->_server.cgi.empty()) {
-            cgi_exec = this->_server.cgi[cgi_ext];
+    t_location location = this->getLocation();
+    std::string cgi_ext = getExtension(this->_path);
+    if (!this->_server.cgi.empty()) {
+        cgi_exec = this->_server.cgi[cgi_ext];
+    } else {
+        cgi_exec = location.cgi[cgi_ext];
+    }
+    if (cgi_exec.empty() || cgi_ext.empty())
+        throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
+
+    int fd[2];
+    if (pipe(fd) == -1) {
+        std::cerr << FILE_LINE;
+        throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        std::cerr << FILE_LINE;
+        throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+    }
+    this->cgi = new CGIHandler(this->_request, this->_server, this->_path + cgi_exec);
+    cgi->setFdIn(fd[0]);
+    cgi->setFdOut(fd[1]);
+    cgi->setPid(pid);
+    if (pid == 1) {
+        if (write(fd[1], this->_request->getBody().c_str(), this->_request->getBody().length()) == -1) {
+            std::cerr << FILE_LINE;
+            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+        }
+    }
+    if (pid == 0) {
+        dup2(fd[0], STDIN_FILENO);
+        dup2(fd[1], STDOUT_FILENO);
+        close(fd[0]);
+        close(fd[1]);
+        char *const argv[] = {const_cast<char *>(cgi_exec.c_str()), const_cast<char *>(this->_path.c_str()), NULL};
+        execve(cgi_exec.c_str(), argv, cgi->getEnv());
+        perror("execve : ");
+        exit(1);
+    }
+
+    int status;
+    clock_t start_time = clock() / CLOCKS_PER_SEC;
+    int res = 0;
+    do {
+        clock_t current_time = clock() / CLOCKS_PER_SEC;
+        if (current_time - start_time > 5)
+            break;
+        res = waitpid(cgi->getPid(), &status, WNOHANG);
+    } while (res == 0);
+
+    if (res == 0) {
+        throw std::runtime_error(this->returnError(GATEWAY_TIMEOUT_STATUS));
+    }
+    if (WIFEXITED(status))
+        status = WEXITSTATUS(status);
+    if (status) {
+        std::cout << "exit with !0 status\n";
+        if (access(this->_path.c_str(), F_OK) < 0)
+            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        std::cerr << FILE_LINE;
+        throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+    }
+    usleep(100000);
+
+    char buffer[BUFFER_SIZE + 1];
+    bzero(buffer, BUFFER_SIZE + 1);
+    fcntl(cgi->getFdIn(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    std::cout << "fdIn: " << cgi->getFdIn() << std::endl;
+    int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
+    if (b == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            // No data available yet, you may want to retry later
+            std::cerr << "No data available yet." << std::endl;
         } else {
-            cgi_exec = location.cgi[cgi_ext];
-        }
-        if (cgi_exec.empty() || cgi_ext.empty())
-            throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
-
-        int fd[2];
-        if (pipe(fd) == -1) {
-            std::cerr << FILE_LINE;
+            // Some other error occurred
+            std::cerr << "Error reading from file descriptor: " << strerror(errno) << std::endl;
             throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
         }
-
-        pid_t pid = fork();
-        if (pid == -1) {
-            std::cerr << FILE_LINE;
-            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+    }
+    this->_body.clear();
+    this->_body.append(buffer, b);
+    Logger::get().log(DEBUG, "CGI response: %s", this->_body.c_str());
+    Logger::get().log(DEBUG, "this->_is_header_done = %d", this->_is_header_done);
+    if (!this->_is_header_done) {
+		this->_s_header += "HTTP/1.1 200 OK\r\n";
+        Logger::get().log(DEBUG, "this->_s_header: %s", this->_s_header.c_str());
+        size_t find_end_of_head = this->_body.find("\r\n\r\n");
+        if (find_end_of_head != this->_body.npos) {
+            this->_s_header.insert(0, this->_body.substr(0, find_end_of_head + 4));
+            this->_body = this->_body.substr(find_end_of_head + 4, -1);
         }
-        this->cgi = new CGIHandler(this->_request, this->_server, this->_path + cgi_exec);
-        cgi->setFdIn(fd[0]);
-        cgi->setFdOut(fd[1]);
-        cgi->setPid(pid);
-        if (pid == 1) {
-            if (write(fd[1], this->_request->getBody().c_str(), this->_request->getBody().length()) == -1) {
-                std::cerr << FILE_LINE;
-                throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
-            }
-        }
-        if (pid == 0) {
-            dup2(fd[0], STDIN_FILENO);
-            dup2(fd[1], STDOUT_FILENO);
-            close(fd[0]);
-            close(fd[1]);
-            char *const argv[] = {const_cast<char *>(cgi_exec.c_str()), const_cast<char *>(this->_path.c_str()), NULL};
-            execve(cgi_exec.c_str(), argv, cgi->getEnv());
-            perror("execve : ");
-            exit(1);
-        }
-        int status;
-        clock_t start_time = clock() / CLOCKS_PER_SEC;
-        int res = 0;
-        do {
-            clock_t current_time = clock() / CLOCKS_PER_SEC;
-            if (current_time - start_time > 5)
-                break;
-            res = waitpid(cgi->getPid(), &status, WNOHANG);
-        } while (res == 0);
-
-        if (res == 0) {
-            throw std::runtime_error(this->returnError(GATEWAY_TIMEOUT_STATUS));
-        }
-        if (WIFEXITED(status))
-            status = WEXITSTATUS(status);
-        if (status) {
-            std::cout << "exit with !0 status\n";
-            if (access(this->_path.c_str(), F_OK) < 0)
-                throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
-            std::cerr << FILE_LINE;
-            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
-        }
-
-        char buffer[BUFFER_SIZE + 1];
-        bzero(buffer, BUFFER_SIZE + 1);
-        fcntl(cgi->getFdIn(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        std::cout << "fdIn: " << cgi->getFdIn() << std::endl;
-        int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
-        if (b == -1) {
-            std::cerr << FILE_LINE;
-            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
-        }
-        this->_body.clear();
-        this->_body.append(buffer, b);
-        if (!this->_is_header_done) {
-            size_t find_end_of_head = this->_body.find("\r\n\r\n");
-            if (find_end_of_head != this->_body.npos) {
-                this->_s_header.insert(0, this->_body.substr(0, find_end_of_head + 4));
-                this->_body = this->_body.substr(find_end_of_head + 4, -1);
-            }
-            this->_is_header_done = true;
-            this->_s_response = this->_s_header + this->_body;
-        }
+        Logger::get().log(DEBUG, "this->_body: %s", this->_body.c_str());
+        this->_is_header_done = true;
+        this->_s_response = this->_s_header + this->_body;
+        Logger::get().log(DEBUG, "this->_s_response: %s", this->_s_response.c_str());
     }
 }
 

@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/13 00:29:22 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/18 01:06:59 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ bool HTTPRequest::getHeaderEnd(void) const {
     return (this->_isHeaderEnd);
 }
 
-std::map<std::string, std::string> HTTPRequest::getHeaders(void) const {
+std::map<std::string, std::string> &HTTPRequest::getHeaders(void) {
     return (this->_headers);
 }
 

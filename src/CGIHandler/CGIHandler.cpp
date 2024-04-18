@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/08 17:58:53 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/16 23:23:58 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/18 01:48:36 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,35 +25,43 @@ CGIHandler::CGIHandler(HTTPRequest *request, t_server &server, std::string path)
     return;
 }
 CGIHandler::~CGIHandler(void) {
+    for (int i = 0; _env[i] != NULL; i++) {
+        free(_env[i]);
+    }
+    delete[] _env;
     return;
 }
 
+static void convertToUpperCaseUnderscore(std::string &input) {
+    std::string result;
+    for (size_t i = 0; i < input.size(); i++) {
+        if (input[i] == '-') {
+            input[i] = '_';
+        } else if (input[i] != '_' && std::isalpha(input[i]) && std::islower(input[i])) {
+            input[i] -= 32;
+        }
+    }
+}
+
 void CGIHandler::setupEnvironment(void) {
-    // Convert content length to string
-    size_t contentLength = this->_request->getContentLenght();
-    int port = this->_server.port;
-    std::string portStr = std::to_string(port);
-    std::string contentLengthStr = std::to_string(contentLength);
+    char **env;
+    std::map<std::string, std::string> &tmp = this->_request->getHeaders();
+    std::map<std::string, std::string>::iterator it;
+    int i;
 
-    setenv("SERVER_SOFTWARE", this->_server.server_name.c_str(), true);
-    setenv("SERVER_NAME", this->_server.ip_address.c_str(), true);
-    setenv("SERVER_PROTOCOL", "HTTP/1.1", true);
-    setenv("GATEWAY_INTERFACE", "CGI/1.1", true);
-    setenv("SERVER_PORT", portStr.c_str(), true);
-    setenv("REQUEST_METHOD", this->_request->getMethod().c_str(), true);
-    setenv("PATH_INFO", this->_request->getURI().c_str(), true);
-    setenv("PATH_TRANSLATED", this->_path.c_str(), true);
-    setenv("SCRIPT_NAME", this->_path.c_str(), true);
-    setenv("QUERY_STRING", this->_request->getValueByKey(REQ_QUERY_STRING).c_str(), true);
-    setenv("REMOTE_ADDR", this->_server.ip_address.c_str(), true);
-    setenv("AUTH_TYPE", "", true);
-    setenv("REMOTE_USER", "", true);
-    setenv("REMOTE_IDENT", "", true);
-    setenv("CONTENT_TYPE", "", true);
-    setenv("CONTENT_LENGTH", contentLengthStr.c_str(), true);
+	i = 0;
 
-    this->_env = environ;
-    std::cout << "Setting up environment for CGI: Done" << std::endl;
+	env = new char*[tmp.size() + 1];
+	for (it = tmp.begin(); it != tmp.end(); it++){
+		std::string key = it->first;
+        if (key != REQ_CONTENT_LENGTH && key != REQ_QUERY_STRING && key != REQ_CONTENT_TYPE && key != REQ_METHOD)
+            key.insert(0, "HTTP_");
+        convertToUpperCaseUnderscore(key);
+        env[i++] = strdup((key + "=" + it->second).c_str());
+		std::cout << env[i - 1] << std::endl;
+    }
+    env[i] = NULL;
+	this->_env = env;
 }
 
 char **CGIHandler::getEnv(void) const {

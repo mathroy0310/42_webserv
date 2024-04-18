@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/16 23:33:59 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/18 02:51:38 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ class HTTPResponse {
     const std::string &getResponse(void) const;
     bool getUploaded(void) const;
 
+
   private:
     void executeCGI(void);
 
@@ -69,9 +70,10 @@ class HTTPResponse {
 
     bool directoryRedirection();
     std::string getBoundary();
+    void checkCgiHeader(void);
 
-    // Attributes
-    std::string _version;
+        // Attributes
+        std::string _version;
     std::string _status_code;
     std::string _status_message;
     std::map<std::string, std::string> _headers;
