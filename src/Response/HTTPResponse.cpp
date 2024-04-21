@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/18 02:51:46 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/21 00:38:27 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -541,17 +541,17 @@ bool HTTPResponse::uploadFile(std::string &upload_path) {
         this->_upload_file_size = upload_body.find("\r\n" + boundary);
     }
     if (this->_upload_file_size != std::string::npos) {
-        size_t i = static_cast<size_t>(this->_upload_of.tellp());
-        if (i < this->_upload_file_size) {
-            size_t write_size = static_cast<size_t>(WRITE_BUFFER_SIZE);
-            if ((i + WRITE_BUFFER_SIZE) > this->_upload_file_size)
-                write_size = this->_upload_file_size - i;
+        size_t pos = static_cast<size_t>(this->_upload_of.tellp());
+		Logger::get().log(DEBUG, "upload_file_size: %lu", this->_upload_file_size);
+		Logger::get().log(DEBUG, "pos : %lu ", pos);
+        if (pos < this->_upload_file_size) {
+            size_t write_size = this->_upload_file_size;
 
             Logger::get().log(INFO, "%lu Bytes Uploaded", write_size);
             this->_upload_of.write(upload_body.c_str() + this->_upload_pos, write_size);
             this->_upload_pos += write_size;
             this->_upload_of.flush();
-            return false;
+            return true;
         } else {
             this->_upload_of.close();
             upload_body.erase(0, this->_upload_file_size + ("\r\n" + boundary).length());
@@ -560,7 +560,7 @@ bool HTTPResponse::uploadFile(std::string &upload_path) {
         }
     }
     if (upload_body == "--\r\n") {
-        return true;
+        return false;
     }
     return false;
 }
@@ -709,11 +709,13 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         this->executeCGI();
     }
     if (!upload_path.empty()) {
+		Logger::get().log(INFO, "upload_path: %s", upload_path.c_str());
         DIR *upload_dir = opendir(upload_path.c_str());
         if (!upload_dir)
             throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
         closedir(upload_dir);
         if (this->uploadFile(upload_path)) {
+			
             std::string body = UPLOADED_DEFAULT_PAGE;
             this->_content_length = body.length();
             this->setContentType(".html");
@@ -722,7 +724,13 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
             this->_is_uploaded = true;
             return;
         }
-        this->_is_uploaded = false;
+        std::string body = UPLOADED_FAILED_PAGE;
+        this->_content_length = body.length();
+        this->setContentType(".html");
+        this->setHeaders(OK_STATUS);
+        this->_s_response = this->_s_header + body;
+        this->_is_uploaded = true;
+        //this->_is_uploaded = false;
         return;
     } else {
         if (access(this->_path.c_str(), F_OK) < 0) {

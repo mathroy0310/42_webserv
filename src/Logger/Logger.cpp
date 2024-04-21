@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/08 19:08:14 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/21 00:23:49 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,11 +52,17 @@ void Logger::log(e_logLevel level, const char *format, ...) {
         break;
     }
 
-    char message[BUFFER_SIZE];
     va_list args;
     va_start(args, format);
-    vsnprintf(message, sizeof(message), format, args);
+    int size_needed = vsnprintf(NULL, 0, format, args) + 1;
     va_end(args);
+
+    char *message = new char[size_needed];
+
+    va_start(args, format);
+    vsnprintf(message, size_needed, format, args);
+    va_end(args);
+
 
     std::string log_message = this->_get_curr_time() + "[" + log_level + "]\t" + message;
     std::string log_tty_message = this->_get_curr_time() + log_color + "[" + log_level + "]\t" + RESET_COLOR + message;
@@ -67,6 +73,7 @@ void Logger::log(e_logLevel level, const char *format, ...) {
         if (this->_log_type == OUT_FILE || this->_log_type == BOTH)
             this->_log_file << log_message << std::endl;
     }
+    delete[] message;
 }
 
 std::string Logger::_get_curr_time(void) {

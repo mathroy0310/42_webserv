@@ -110,24 +110,34 @@ void Server::handleRequests(void) {
 void Server::read_socket(Client &client) {
     if (!client.getRequest())
         client.setRequest(client.createNewRequest());
-    char buffer[BUFFER_SIZE + 1];
 
-    bzero(buffer, BUFFER_SIZE + 1);
-    int len = recv(client.getSocketFd(), buffer, BUFFER_SIZE, 0);
-	Logger::get().log(DEBUG, "Req Buffer: %s", buffer);
-    if (len == -1)
-        client.disconnect();
-    else if (len == 0)
-		//client.disconnect();
-        throw std::runtime_error("Client disconnected");
+    std::vector<char> data;
+    char buffer[BUFFER_SIZE + 1];
+    int len = BUFFER_SIZE;
+
+    while (len == BUFFER_SIZE) {
+        bzero(buffer, BUFFER_SIZE + 1);
+        len = recv(client.getSocketFd(), buffer, BUFFER_SIZE, 0);
+        if (len > 0) {
+            data.insert(data.end(), buffer, buffer + len);
+        } else if (len == -1) {
+            client.disconnect();
+        } else if (len == 0) {
+            throw std::runtime_error("Client disconnected");
+        }
+    }
+
+    std::string totalData(data.begin(), data.end());
+
+	Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
     if (!client.getRequest()->getHeaderEnd()) {
         try {
-            client.getRequest()->appendHeader(buffer, len);
+            client.getRequest()->appendHeader(totalData.c_str(), totalData.size());
         } catch (int status) {
             client.setStatus(status);
         }
     } else {
-        client.getRequest()->appendFile(buffer, len);
+        client.getRequest()->appendFile(totalData.c_str(), totalData.size());
     }
     Logger::get().log(DEBUG, "REQ_METHOD:=%s", client.getRequest()->getHeaders()[REQ_METHOD].c_str());
     Logger::get().log(DEBUG, "REQ_PATH:=%s", client.getRequest()->getHeaders()[REQ_PATH].c_str());

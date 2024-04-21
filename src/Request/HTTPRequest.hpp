@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:11 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/18 01:06:52 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/20 23:51:28 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@ class HTTPRequest {
     size_t getContentLenght(void);
     void addToHeader(std::string key, std::string value);
     std::string &getValueByKey(std::string key);
-    void appendFile(char *buffer, int len);
-    void appendHeader(char *buffer, int len);
+    void appendFile(const char *buffer, int len);
+    void appendHeader(const char *buffer, int len);
 
   private:
     // Attributes

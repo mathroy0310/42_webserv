@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/18 01:06:59 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/20 23:51:16 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,13 +66,13 @@ size_t HTTPRequest::getContentLenght(void) {
     return (std::atoll(this->_headers[REQ_CONTENT_LENGTH].c_str()));
 }
 
-void HTTPRequest::appendFile(char *buffer, int len) {
+void HTTPRequest::appendFile(const char *buffer, int len) {
     this->_total += len;
     Logger::get().log(DEBUG, "Total: %d - Content-Length: %d", this->_total, this->getContentLenght());
     this->_body.append(buffer, len);
 }
 
-void HTTPRequest::appendHeader(char *buffer, int len) {
+void HTTPRequest::appendHeader(const char *buffer, int len) {
     std::string tmp;
 
     this->_headerStr.append(buffer, len);

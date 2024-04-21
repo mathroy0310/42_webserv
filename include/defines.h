@@ -29,9 +29,9 @@
 /***********/
 
 #define MAX_CLIENTS SOMAXCONN
-// #define BUFFER_SIZE 16384
+#define BUFFER_SIZE 1024
 
-#define BUFFER_SIZE 4096
+// #define BUFFER_SIZE 2097152
 /**********/
 /* Colors */
 /**********/
@@ -148,5 +148,15 @@
     "#28a745;margin-bottom: 20px;}#upload-message::after{content: \'\\2713\';font-size: 36px;display: block;color: " \
     "#28a745;margin-top: 10px;}</style></head><body><div id=\"upload-container\"><div id=\"upload-message\">Upload " \
     "Successful!</div></div></body></html>"
+
+#define UPLOADED_FAILED_PAGE                                                                                           \
+    "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" "                          \
+    "content=\"width=device-width, initial-scale=1.0\"><title>Upload Failed</title><style>body {font-family: \'Segoe " \
+    "UI\', Tahoma, Geneva, Verdana, sans-serif;background-color: #f8f9fa;color: #495057;text-align: center;margin: "   \
+    "50px;}#upload-container {background-color: #ffffff;border-radius: 8px;box-shadow: 0 0 10px rgba(0, 0, 0, "        \
+    "0.1);padding: 20px;max-width: 400px;margin: 0 auto;}#upload-message {font-size: 24px;font-weight: bold;color: "   \
+    "#dc3545;margin-bottom: 20px;}#upload-message::after{content: \'\\2717\';font-size: 36px;display: block;color: "   \
+    "#dc3545;margin-top: 10px;}</style></head><body><div id=\"upload-container\"><div id=\"upload-message\">Upload "   \
+    "Failed!</div></div></body></html>"
 
 #endif  // DEFINES_H
