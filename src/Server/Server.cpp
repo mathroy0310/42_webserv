@@ -79,12 +79,12 @@ void Server::handleRequests(void) {
     std::vector<Client>::iterator client = this->_clients.begin();
     while (client != this->_clients.end()) {
         std::system("sleep 0.05");
-        if (this->_multiplexer->canRead(client->getSocketFd())) {
+        if (this->_multiplexer->canRead(client->getSocketFd()) || client->_is_done_reading == false) {
             try {
                 read_socket(*client);
                 this->_multiplexer->addFd(client->getSocketFd(), POLLOUT);
             } catch (const std::exception &e) {
-               throw std::runtime_error("Client disconnected");
+                throw std::runtime_error("Client disconnected");
             }
         }
         if (this->_multiplexer->canWrite(client->getSocketFd())) {
@@ -108,6 +108,7 @@ void Server::handleRequests(void) {
 }
 
 void Server::read_socket(Client &client) {
+    client._is_done_reading = false;
     if (!client.getRequest())
         client.setRequest(client.createNewRequest());
 
@@ -123,13 +124,15 @@ void Server::read_socket(Client &client) {
         } else if (len == -1) {
             client.disconnect();
         } else if (len == 0) {
+            Logger::get().log(ERROR, "Errno: %s", strerror(errno));
+            client.disconnect();
             throw std::runtime_error("Client disconnected");
         }
     }
-
+    client._is_done_reading = true;
     std::string totalData(data.begin(), data.end());
 
-	Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
+    Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
     if (!client.getRequest()->getHeaderEnd()) {
         try {
             client.getRequest()->appendHeader(totalData.c_str(), totalData.size());
@@ -156,7 +159,7 @@ bool Server::write_socket(Client &client) {
 
     buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
     if (response->getUploaded() == true) {
-		Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
+        Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
         int len = send(client.getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
         if (len < BUFFER_SIZE) {
             request->clear();

@@ -23,23 +23,14 @@ class Client {
     //
 
     // Methods
-    void readRequest(void);
-    bool writeResponse(void);
-    bool hasPendingOperations(void) const;
     void disconnect(void);
 
+    bool _is_done_reading;
   private:
     // Attributes
     int _socket_fd;
     int _status_code;
     t_server _server;
-    bool _is_writing;
     HTTPRequest *_request;
     HTTPResponse *_response;
-
-    // Methods
-    void processRequest(void);
-    std::string getFilePath(void);
-    void serveFile(const std::string &file_path, std::map<std::string, std::string> &headers);
-    std::string getMimeType(const std::string &file_path);
 };
