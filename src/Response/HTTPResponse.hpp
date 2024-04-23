@@ -6,16 +6,18 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/18 02:51:38 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/22 20:53:10 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "CGIHandler/CGIHandler.hpp"
-#include "Request/HTTPRequest.hpp"
 #include "defines.h"
+#include "CGIHandler/CGIHandler.hpp"
+#include "DirectiveSelector/DirectiveSelector.hpp"
+#include "Request/HTTPRequest.hpp"
 
+class DirectiveSelector;
 class CGIHandler;
 
 class HTTPResponse {
@@ -66,14 +68,14 @@ class HTTPResponse {
     void methodNotAllowed(void);
     void locationRedirection(void);
     void HandlePostMethod(DIR *dir);
+    void HandleDeleteMethod(const std::string &file_path);
     bool uploadFile(std::string &upload_path);
 
     bool directoryRedirection();
     std::string getBoundary();
-    void checkCgiHeader(void);
 
-        // Attributes
-        std::string _version;
+    // Attributes
+    std::string _version;
     std::string _status_code;
     std::string _status_message;
     std::map<std::string, std::string> _headers;
@@ -97,4 +99,6 @@ class HTTPResponse {
     bool _is_default_page_flag;
     t_server _server;
 	CGIHandler *cgi;
+	static bool is_selector_created;
+	DirectiveSelector *_directive_selector;
 };

@@ -10,12 +10,12 @@ Client::Client(int socket_fd, t_server server) {
 }
 
 Client::~Client(void) {
-	if (this->_request) {
-		delete this->_request;
-	}
-	if (this->_response) {
-		delete this->_response;
-	}
+    if (this->_request) {
+        delete this->_request;
+    }
+    if (this->_response) {
+        delete this->_response;
+    }
 }
 
 int Client::getSocketFd(void) const {
@@ -55,4 +55,68 @@ void Client::setStatus(int status_code) {
 void Client::disconnect(void) {
     close(this->_socket_fd);
     this->_socket_fd = -1;
+}
+
+void Client::read_socket(void) {
+    if (!this->getRequest())
+        this->setRequest(this->createNewRequest());
+
+    std::vector<char> data;
+    char buffer[BUFFER_SIZE + 1];
+    int len = BUFFER_SIZE;
+
+    this->_is_done_reading = false;
+    while (len == BUFFER_SIZE) {
+        bzero(buffer, BUFFER_SIZE + 1);
+        len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, 0);
+        if (len > 0) {
+            data.insert(data.end(), buffer, buffer + len);
+        } else if (len == -1) {
+            this->disconnect();
+        } else if (len == 0) {
+            Logger::get().log(ERROR, "Errno: %s", strerror(errno));
+            this->disconnect();
+            throw std::runtime_error("Client disconnected");
+        }
+    }
+    std::string totalData(data.begin(), data.end());
+
+    Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
+    if (!this->getRequest()->getHeaderEnd()) {
+        try {
+            this->getRequest()->appendHeader(totalData.c_str(), totalData.size());
+        } catch (int status) {
+            this->setStatus(status);
+        }
+    } else {
+        this->getRequest()->appendFile(totalData.c_str(), totalData.size());
+    }
+    this->_is_done_reading = true;
+}
+
+bool Client::write_socket(void) {
+    HTTPRequest *request = this->getRequest();
+    HTTPResponse *response = this->getResponse();
+    bool keep_alive = request->getValueByKey(REQ_CONNECTION).empty()
+                          ? true
+                          : (request->getValueByKey(REQ_CONNECTION) == "keep-alive");
+
+    std::string buffer_reponse;
+
+    buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
+    if (response->getUploaded() == true) {
+        Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
+        int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
+        if (len < BUFFER_SIZE) {
+            request->clear();
+            delete request;
+            this->setRequest(NULL);
+            delete response;
+            this->setResponse(NULL);
+            if (len == -1)
+                return (false);
+            return (keep_alive);
+        }
+    }
+    return (true);
 }

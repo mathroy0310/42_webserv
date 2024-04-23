@@ -1,16 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HTTPResponse.cpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/25 23:04:36 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/21 00:38:27 by maroy            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "HTTPResponse.hpp"
+
+bool HTTPResponse::is_selector_created = false;
 
 static void correctPath(std::string &path) {
     size_t tmp = path.find_last_not_of('/');
@@ -21,16 +11,6 @@ static void correctPath(std::string &path) {
 
 static bool isMethodAllowed(const std::string &method, const std::vector<std::string> &allowed_methods) {
     return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
-}
-
-static bool findAllowedMethod(const std::string &method, const t_server &server, const t_location *location) {
-    if (location == NULL)
-        return (isMethodAllowed(method, server.allowed_methods));
-    else {
-        bool in_location = isMethodAllowed(method, location->allowed_methods);
-        bool in_server = isMethodAllowed(method, server.allowed_methods);
-        return (in_location || (location->allowed_methods.empty() && in_server));
-    }
 }
 
 const std::string getExtension(const std::string &path) {
@@ -79,6 +59,9 @@ HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
     this->_location_index = -1;
     this->_upload_file_size = -1;
     this->_is_default_page_flag = false;
+    if (!this->_directive_selector)
+		delete this->_directive_selector;
+    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH) );
     this->initStatusCodeMap();
     try {
         std::cerr << ERR_PREFIX << "request " << status << FILE_LINE;
@@ -100,12 +83,16 @@ static void correctPath(std::string &path);
 
 HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     : _request(request), _is_header_done(false), _server(server) {
+
     this->cgi = NULL;
     this->_is_uploaded = true;
     this->_is_default_page_flag = false;
     this->_content_length = 0;
     this->_location_index = -1;
     this->_upload_file_size = -1;
+	if (!this->_directive_selector)
+			delete this->_directive_selector;
+    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH) );
     if (this->_request)
         this->setContentType(getExtension(this->_request->getValueByKey(REQ_PATH)));
     this->initStatusCodeMap();
@@ -113,53 +100,43 @@ HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     correctPath(this->_path);
 }
 
-void HTTPResponse::locationExists() {
-    std::vector<t_location> locations = this->_server.locations;
-    std::vector<std::string> location_paths;
+// void HTTPResponse::locationExists() {
+//     std::vector<t_location> locations = this->_server.locations;
+//     std::vector<std::string> location_paths;
 
-    for (size_t i = 0; i < locations.size(); i++)
-        location_paths.push_back(locations[i].path);
-    std::string look_for = this->_request->getValueByKey(REQ_PATH);
-    while (look_for.size() > 0) {
-        Logger::get().log(DEBUG, "look_for: %s", look_for.c_str());
-        std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), look_for);
-        if (it != location_paths.end()) {
-            this->_location_index = std::distance(location_paths.begin(), it);
-            return;
-        }
-        size_t last = look_for.find_last_of('/');
-        if (last == look_for.npos)
-            break;
-        look_for.erase(last, -1);
-    }
-    if (this->_request->getValueByKey(REQ_PATH)[0] == '/' && look_for.empty()) {
-        std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), "/");
-        if (it != location_paths.end()) {
-            this->_location_index = std::distance(location_paths.begin(), it);
-            return;
-        }
-    }
-}
+//     for (size_t i = 0; i < locations.size(); i++)
+//         location_paths.push_back(locations[i].path);
+//     std::string look_for = this->_request->getValueByKey(REQ_PATH);
+//     while (look_for.size() > 0) {
+//         Logger::get().log(DEBUG, "look_for: %s", look_for.c_str());
+//         std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), look_for);
+//         if (it != location_paths.end()) {
+//             this->_location_index = std::distance(location_paths.begin(), it);
+//             return;
+//         }
+//         size_t last = look_for.find_last_of('/');
+//         if (last == look_for.npos)
+//             break;
+//         look_for.erase(last, -1);
+//     }
+//     if (this->_request->getValueByKey(REQ_PATH)[0] == '/' && look_for.empty()) {
+//         std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), "/");
+//         if (it != location_paths.end()) {
+//             this->_location_index = std::distance(location_paths.begin(), it);
+//             return;
+//         }
+//     }
+// }
 
 std::string HTTPResponse::matching() {
     std::string req_path = this->_request->getValueByKey(REQ_PATH);
-    std::string root = this->_server.root;
+    std::string root = this->_directive_selector->getRoot();
+    std::string path = this->_directive_selector->getPath();
 
-    this->locationExists();
-    Logger::get().log(DEBUG, "location index: %d", this->_location_index);
-    if (this->_location_index == -1) {
-        if (root.empty() && req_path.find_first_not_of('/') == req_path.npos)
-            this->defaultPage();
-        Logger::get().log(DEBUG, "root: %s", root.c_str());
-        Logger::get().log(DEBUG, "req_path: %s", req_path.c_str());
-        return (root + req_path);
-    }
-    t_location location = this->getLocation();
-    if (!location.root.empty())
-        root = location.root;
     Logger::get().log(DEBUG, "root: %s", root.c_str());
     Logger::get().log(DEBUG, "req_path: %s", req_path.c_str());
-    req_path = req_path.substr(location.path.length(), req_path.length());
+    if (path.size() == 0)
+        req_path = req_path.substr(path.length(), req_path.length());
 
     Logger::get().log(DEBUG, "root + req_path: %s", (root + req_path).c_str());
     return (root + req_path);
@@ -358,21 +335,12 @@ std::string HTTPResponse::fileToString(const std::string &file_path, int error_s
 }
 
 const std::string &HTTPResponse::returnError(int status) {
-    if (this->_location_index > -1) {
-        t_location location = this->getLocation();
+    std::map<unsigned int, std::string> error_pages = this->_directive_selector->getErrorPages();
+    try {
+        this->_body = fileToString(error_pages[status], status);
+    } catch (const std::exception &e) {
         try {
-            this->_body = fileToString(location.error_pages[status], status);
-        } catch (const std::exception &e) {
-            try {
-                this->_body = fileToString(this->_server.error_pages[status], status);
-            } catch (const std::exception &ex) {
-                this->_body = ex.what();
-                this->_content_length = this->_body.length();
-            }
-        }
-    } else {
-        try {
-            this->_body = fileToString(this->_server.error_pages[status], status);
+            this->_body = fileToString(error_pages[status], status);
         } catch (const std::exception &ex) {
             this->_body = ex.what();
             this->_content_length = this->_body.length();
@@ -384,6 +352,7 @@ const std::string &HTTPResponse::returnError(int status) {
     this->_s_header.clear();
     return (this->_body);
 }
+
 void HTTPResponse::servFile(const std::string &file_path, int status, int error_status) {
     try {
         this->_body = fileToString(file_path, error_status);
@@ -398,16 +367,7 @@ void HTTPResponse::servFile(const std::string &file_path, int status, int error_
 }
 
 void HTTPResponse::listDirectory(DIR *dir) {
-    std::string index;
-    bool is_autoindex;
-
-    if (this->_location_index > -1) {
-        index = this->getLocation().index;
-        is_autoindex = this->getLocation().is_autoindex;
-    } else {
-        index = this->getServer().index;
-        is_autoindex = this->getServer().is_autoindex;
-    }
+    std::string index = this->_directive_selector->getIndex();
 
     if (directoryRedirection())
         return;
@@ -430,7 +390,7 @@ void HTTPResponse::listDirectory(DIR *dir) {
         Logger::get().log(DEBUG, "indexFile: %s", indexFile.c_str());
         return (servFile(indexFile, OK_STATUS, NOT_FOUND_STATUS));
     }
-    if (!is_autoindex)
+    if (!this->_directive_selector->getAutoindex())
         throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
     Logger::get().log(DEBUG, "directory_listing");
     this->_body = directory_listing(dir, this->_request->getValueByKey(REQ_PATH));
@@ -442,14 +402,11 @@ void HTTPResponse::listDirectory(DIR *dir) {
 }
 
 void HTTPResponse::methodNotAllowed(void) {
-    t_location *location = NULL;
     const std::string &method = this->_request->getValueByKey(REQ_METHOD);
 
-    if (this->_location_index > -1)
-        location = &this->_server.locations[this->_location_index];
     if (method != "GET" && method != "POST" && method != "DELETE")
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
-    else if (findAllowedMethod(method, this->_server, location) == false)
+    else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == true)
         throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
 }
 
@@ -471,18 +428,9 @@ bool HTTPResponse::directoryRedirection() {
 }
 
 void HTTPResponse::locationRedirection() {
-    t_server server = this->_server;
-    std::string redir_to;
-    int redir_code;
+    std::string redir_to = this->_directive_selector->getRedirect_to();
+    int redir_code = this->_directive_selector->getRedirect_code();
 
-    if (!this->_server.redirect_to.empty()) {
-        redir_to = this->_server.redirect_to;
-        redir_code = this->_server.redirect_code;
-    } else {
-        t_location location = this->getLocation();
-        redir_to = location.redirect_to;
-        redir_code = location.redirect_code;
-    }
     if (!this->_is_header_done) {
         this->_s_header += "HTTP/1.1 ";
         this->_s_header += this->_status_codes[redir_code] + "\r\n";
@@ -494,8 +442,6 @@ void HTTPResponse::locationRedirection() {
     this->_s_response = this->_s_header;
     this->_s_header.clear();
 }
-
-#define WRITE_BUFFER_SIZE 1000000
 
 std::string HTTPResponse::getBoundary() {
     std::string tmp = "boundary=";
@@ -542,8 +488,8 @@ bool HTTPResponse::uploadFile(std::string &upload_path) {
     }
     if (this->_upload_file_size != std::string::npos) {
         size_t pos = static_cast<size_t>(this->_upload_of.tellp());
-		Logger::get().log(DEBUG, "upload_file_size: %lu", this->_upload_file_size);
-		Logger::get().log(DEBUG, "pos : %lu ", pos);
+        Logger::get().log(DEBUG, "upload_file_size: %lu", this->_upload_file_size);
+        Logger::get().log(DEBUG, "pos : %lu ", pos);
         if (pos < this->_upload_file_size) {
             size_t write_size = this->_upload_file_size;
 
@@ -575,13 +521,8 @@ void HTTPResponse::executeCGI(void) {
     Logger::get().log(DEBUG, "executeCGI");
     std::string cgi_exec;
 
-    t_location location = this->getLocation();
     std::string cgi_ext = getExtension(this->_path);
-    if (!this->_server.cgi.empty()) {
-        cgi_exec = this->_server.cgi[cgi_ext];
-    } else {
-        cgi_exec = location.cgi[cgi_ext];
-    }
+    cgi_exec = this->_directive_selector->getCgi()[cgi_ext];
     if (cgi_exec.empty() || cgi_ext.empty())
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
 
@@ -661,7 +602,7 @@ void HTTPResponse::executeCGI(void) {
     Logger::get().log(DEBUG, "CGI response: %s", this->_body.c_str());
     Logger::get().log(DEBUG, "this->_is_header_done = %d", this->_is_header_done);
     if (!this->_is_header_done) {
-		this->_s_header += "HTTP/1.1 200 OK\r\n";
+        this->_s_header += "HTTP/1.1 200 OK\r\n";
         Logger::get().log(DEBUG, "this->_s_header: %s", this->_s_header.c_str());
         size_t find_end_of_head = this->_body.find("\r\n\r\n");
         if (find_end_of_head != this->_body.npos) {
@@ -677,45 +618,32 @@ void HTTPResponse::executeCGI(void) {
 
 void HTTPResponse::HandlePostMethod(DIR *dir) {
     Logger::get().log(DEBUG, "HandlePostMethod");
-    std::string cgi_ext;
-    std::string cgi_exec;
-    std::string index;
-    std::string upload_path;
     size_t requested_content_lenght = this->_request->getContentLenght();
-    size_t max_content_lenght = 0;
 
-    cgi_ext = getExtension(this->_path);
-    if (this->_location_index > -1) {
-        t_location location = this->getLocation();
-        cgi_exec = location.cgi[cgi_ext];
-        index = location.index;
-        upload_path = location.upload_path;
-        max_content_lenght = location.max_body_size;
-        if (max_content_lenght == 0)
-            max_content_lenght = this->_server.max_body_size;
-    } else {
-        cgi_exec = this->_server.cgi[cgi_ext];
-        index = this->_server.index;
-        upload_path = this->_server.upload_path;
-        max_content_lenght = this->_server.max_body_size;
-    }
+    std::string cgi_ext = getExtension(this->_path);
+    std::string cgi_exec = this->_directive_selector->getCgi()[cgi_ext];
+    std::string index = this->_directive_selector->getIndex();
+    std::string upload_path = this->_directive_selector->getUploadPath();
+    size_t max_content_lenght = this->_directive_selector->getMaxBodySize();
 
     if (requested_content_lenght > max_content_lenght) {
         Logger::get().log(ERROR, "Content too large. Config: %lu | Request: %lu", max_content_lenght,
                           requested_content_lenght);
         throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
     }
-    if (this->_location_index > -1 && this->getLocation().is_cgi == true) {
+    if (this->_directive_selector->getIsCgi() == true) {
         this->executeCGI();
+        this->_is_uploaded = true;
+        return;
     }
     if (!upload_path.empty()) {
-		Logger::get().log(INFO, "upload_path: %s", upload_path.c_str());
+        Logger::get().log(INFO, "upload_path: %s", upload_path.c_str());
         DIR *upload_dir = opendir(upload_path.c_str());
         if (!upload_dir)
             throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
         closedir(upload_dir);
         if (this->uploadFile(upload_path)) {
-			
+
             std::string body = UPLOADED_DEFAULT_PAGE;
             this->_content_length = body.length();
             this->setContentType(".html");
@@ -730,7 +658,7 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         this->setHeaders(OK_STATUS);
         this->_s_response = this->_s_header + body;
         this->_is_uploaded = true;
-        //this->_is_uploaded = false;
+        // this->_is_uploaded = false;
         return;
     } else {
         if (access(this->_path.c_str(), F_OK) < 0) {
@@ -753,22 +681,41 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
     throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
 }
 
+void HTTPResponse::HandleDeleteMethod(const std::string &file_path) {
+    // Check if the server has the permissions required to delete the file
+    std::vector<std::string> allowed_methods = this->_directive_selector->getAllowedMethods();
+    // Check if the file exists or whether the server has the permissions required to delete it
+    if (access(file_path.c_str(), F_OK) < 0) {
+        Logger::get().log(ERROR, "File not found: %s", file_path.c_str());
+        throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+    }
+    // Delete the file
+    if (remove(file_path.c_str()) != 0) {
+        Logger::get().log(ERROR, "Error deleting file: %s", file_path.c_str());
+        throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
+    }
+    // Return a response to the client
+    this->setHeaders(NO_CONTENT_STATUS);
+    this->_s_response = this->_s_header;
+    this->_s_header.clear();
+}
+
 std::string HTTPResponse::buildResponse(void) {
     if (this->_is_default_page_flag == true)
         return (this->_s_response);
     DIR *dir = opendir(this->_path.c_str());
-    t_location location = this->getLocation();
     try {
         std::string requested_method = this->_request->getValueByKey(REQ_METHOD);
-        methodNotAllowed();
-        if (!this->_server.redirect_to.empty() ||
-            (this->_location_index > -1 && !this->getLocation().redirect_to.empty()))
+        this->methodNotAllowed();
+        if (!this->_server.redirect_to.empty() || (!this->_directive_selector->getRedirect_to().empty()))
             this->locationRedirection();
         else if (requested_method == "POST")
             this->HandlePostMethod(dir);
+        else if (requested_method == "DELETE")
+            this->HandleDeleteMethod(this->_path);
         else if (dir)
             this->listDirectory(dir);
-        else if (this->_location_index > -1 && location.is_cgi == true) {
+        else if (this->_directive_selector->getIsCgi() == true) {
             this->executeCGI();
         } else {
             this->servFile(this->_path, OK_STATUS, NOT_FOUND_STATUS);

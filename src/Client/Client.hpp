@@ -24,6 +24,8 @@ class Client {
 
     // Methods
     void disconnect(void);
+    void read_socket(void);
+    bool write_socket(void);
 
     bool _is_done_reading;
   private:

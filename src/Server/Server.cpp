@@ -79,17 +79,18 @@ void Server::handleRequests(void) {
     std::vector<Client>::iterator client = this->_clients.begin();
     while (client != this->_clients.end()) {
         std::system("sleep 0.05");
+
         if (this->_multiplexer->canRead(client->getSocketFd()) || client->_is_done_reading == false) {
             try {
-                read_socket(*client);
+                client->read_socket();
                 this->_multiplexer->addFd(client->getSocketFd(), POLLOUT);
             } catch (const std::exception &e) {
                 throw std::runtime_error("Client disconnected");
             }
         }
-        if (this->_multiplexer->canWrite(client->getSocketFd())) {
+        if (this->_multiplexer->canWrite(client->getSocketFd()) && client->_is_done_reading == true) {
             try {
-                if (write_socket(*client)) {
+                if (client->write_socket()) {
                     this->_multiplexer->removeFd(client->getSocketFd());
                     client->disconnect();
                     Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() + 2);
@@ -105,47 +106,6 @@ void Server::handleRequests(void) {
         }
         client++;
     }
-}
-
-void Server::read_socket(Client &client) {
-    client._is_done_reading = false;
-    if (!client.getRequest())
-        client.setRequest(client.createNewRequest());
-
-    std::vector<char> data;
-    char buffer[BUFFER_SIZE + 1];
-    int len = BUFFER_SIZE;
-
-    while (len == BUFFER_SIZE) {
-        bzero(buffer, BUFFER_SIZE + 1);
-        len = recv(client.getSocketFd(), buffer, BUFFER_SIZE, 0);
-        if (len > 0) {
-            data.insert(data.end(), buffer, buffer + len);
-        } else if (len == -1) {
-            client.disconnect();
-        } else if (len == 0) {
-            Logger::get().log(ERROR, "Errno: %s", strerror(errno));
-            client.disconnect();
-            throw std::runtime_error("Client disconnected");
-        }
-    }
-    client._is_done_reading = true;
-    std::string totalData(data.begin(), data.end());
-
-    Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
-    if (!client.getRequest()->getHeaderEnd()) {
-        try {
-            client.getRequest()->appendHeader(totalData.c_str(), totalData.size());
-        } catch (int status) {
-            client.setStatus(status);
-        }
-    } else {
-        client.getRequest()->appendFile(totalData.c_str(), totalData.size());
-    }
-    Logger::get().log(DEBUG, "REQ_METHOD:=%s", client.getRequest()->getHeaders()[REQ_METHOD].c_str());
-    Logger::get().log(DEBUG, "REQ_PATH:=%s", client.getRequest()->getHeaders()[REQ_PATH].c_str());
-    Logger::get().log(DEBUG, "REQ_CONTENT_LENGTH:=%s", client.getRequest()->getHeaders()[REQ_CONTENT_LENGTH].c_str());
-    Logger::get().log(DEBUG, "REQ_CONNECTION:=%s", client.getRequest()->getHeaders()[REQ_CONNECTION].c_str());
 }
 
 bool Server::write_socket(Client &client) {

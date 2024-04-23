@@ -29,9 +29,8 @@
 /***********/
 
 #define MAX_CLIENTS SOMAXCONN
-#define BUFFER_SIZE 20480
+#define BUFFER_SIZE 4096
 
-// #define BUFFER_SIZE 2097152
 /**********/
 /* Colors */
 /**********/

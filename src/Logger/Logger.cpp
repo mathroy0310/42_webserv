@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/21 00:23:49 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/22 16:34:38 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ std::string Logger::_get_curr_time(void) {
     char date[1000];
     time_t now = time(0);
     struct tm tm = *gmtime(&now);
-    tm.tm_hour = tm.tm_hour + GST;
+    tm.tm_hour = (tm.tm_hour + 24 + GST) % 24;
     strftime(date, sizeof(date), "[%Y-%m-%d  %H:%M:%S]\t", &tm);
     return (std::string(date));
 }

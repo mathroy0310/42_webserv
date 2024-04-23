@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/13 00:12:02 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/22 20:53:10 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ typedef struct s_server {
     std::string index;
     std::string upload_path;
     std::vector<std::string> allowed_methods;
-    std::map<unsigned int, std::string> error_pages;
     std::map<std::string, std::string> cgi;
+    std::map<unsigned int, std::string> error_pages;
     std::vector<t_location> locations;
 } t_server;
 
