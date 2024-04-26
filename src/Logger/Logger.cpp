@@ -6,16 +6,15 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/22 16:34:38 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/26 00:30:38 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Logger.hpp"
 
-Logger::Logger(std::string log_file, e_logState state, e_logType type)
-    : _log_filename(log_file), _log_state(state), _log_type(type) {
+Logger::Logger(std::string log_file, e_logState state, e_logType type, e_logLevel level)
+    : _log_filename(log_file), _log_state(state), _log_level(level), _log_type(type) {
     _log_file.open(_log_filename, std::ios::app);
-    return;
 }
 
 Logger::~Logger(void) {
@@ -30,6 +29,9 @@ Logger& Logger::get(void)
 }
 
 void Logger::log(e_logLevel level, const char *format, ...) {
+	if (level < this->_log_level)
+		return;
+
     std::string log_level;
     std::string log_color;
 
