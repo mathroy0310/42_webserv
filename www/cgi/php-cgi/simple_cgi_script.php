@@ -12,9 +12,23 @@ echo <<<HTML
 <html>
 <head>
     <title>Hello, {$name}!</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        div {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, {$name}!</h1>
+    <div>
+        <h1>Hello, {$name}!</h1>
+    </div>
 </body>
 </html>
 HTML;

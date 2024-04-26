@@ -60,8 +60,8 @@ HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
     this->_upload_file_size = -1;
     this->_is_default_page_flag = false;
     if (!this->_directive_selector)
-		delete this->_directive_selector;
-    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH) );
+        delete this->_directive_selector;
+    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH));
     this->initStatusCodeMap();
     try {
         std::cerr << ERR_PREFIX << "request " << status << FILE_LINE;
@@ -90,43 +90,15 @@ HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     this->_content_length = 0;
     this->_location_index = -1;
     this->_upload_file_size = -1;
-	if (!this->_directive_selector)
-			delete this->_directive_selector;
-    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH) );
+    if (!this->_directive_selector)
+        delete this->_directive_selector;
+    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH));
     if (this->_request)
         this->setContentType(getExtension(this->_request->getValueByKey(REQ_PATH)));
     this->initStatusCodeMap();
     this->_path = this->matching();
     correctPath(this->_path);
 }
-
-// void HTTPResponse::locationExists() {
-//     std::vector<t_location> locations = this->_server.locations;
-//     std::vector<std::string> location_paths;
-
-//     for (size_t i = 0; i < locations.size(); i++)
-//         location_paths.push_back(locations[i].path);
-//     std::string look_for = this->_request->getValueByKey(REQ_PATH);
-//     while (look_for.size() > 0) {
-//         Logger::get().log(DEBUG, "look_for: %s", look_for.c_str());
-//         std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), look_for);
-//         if (it != location_paths.end()) {
-//             this->_location_index = std::distance(location_paths.begin(), it);
-//             return;
-//         }
-//         size_t last = look_for.find_last_of('/');
-//         if (last == look_for.npos)
-//             break;
-//         look_for.erase(last, -1);
-//     }
-//     if (this->_request->getValueByKey(REQ_PATH)[0] == '/' && look_for.empty()) {
-//         std::vector<std::string>::iterator it = std::find(location_paths.begin(), location_paths.end(), "/");
-//         if (it != location_paths.end()) {
-//             this->_location_index = std::distance(location_paths.begin(), it);
-//             return;
-//         }
-//     }
-// }
 
 std::string HTTPResponse::matching() {
     std::string req_path = this->_request->getValueByKey(REQ_PATH);
@@ -135,8 +107,11 @@ std::string HTTPResponse::matching() {
 
     Logger::get().log(DEBUG, "root: %s", root.c_str());
     Logger::get().log(DEBUG, "req_path: %s", req_path.c_str());
-    if (path.size() == 0)
+    Logger::get().log(DEBUG, "path: %s", path.c_str());
+    if (path != "") {
+        Logger::get().log(DEBUG, "in location %s", (root + req_path).c_str());
         req_path = req_path.substr(path.length(), req_path.length());
+    }
 
     Logger::get().log(DEBUG, "root + req_path: %s", (root + req_path).c_str());
     return (root + req_path);
@@ -245,8 +220,12 @@ bool HTTPResponse::getUploaded(void) const {
 }
 
 HTTPResponse::~HTTPResponse(void) {
-    if (this->cgi)
+    if (this->cgi) {
         delete this->cgi;
+    }
+    if (this->_directive_selector) {
+        delete this->_directive_selector;
+    }
 }
 
 void HTTPResponse::setVersion(const std::string &version) {
@@ -523,6 +502,8 @@ void HTTPResponse::executeCGI(void) {
 
     std::string cgi_ext = getExtension(this->_path);
     cgi_exec = this->_directive_selector->getCgi()[cgi_ext];
+	Logger::get().log(DEBUG, "cgi_exec: %s", cgi_exec.c_str());
+	Logger::get().log(DEBUG, "cgi_ext: %s", cgi_ext.c_str());
     if (cgi_exec.empty() || cgi_ext.empty())
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
 
@@ -555,7 +536,9 @@ void HTTPResponse::executeCGI(void) {
         char *const argv[] = {const_cast<char *>(cgi_exec.c_str()), const_cast<char *>(this->_path.c_str()), NULL};
         execve(cgi_exec.c_str(), argv, cgi->getEnv());
         perror("execve : ");
-        exit(1);
+        Logger::get().log(WARNING, "Execution failed: Please ensure that the server has the necessary permissions to "
+                                   "access the required interpreter.");
+		exit(EXIT_FAILURE);
     }
 
     int status;

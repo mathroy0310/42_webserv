@@ -31,7 +31,6 @@ DirectiveSelector::DirectiveSelector(t_server &server, std::string &uri) {
 }
 
 
-
 DirectiveSelector::~DirectiveSelector(void) {}
 
 // Methods

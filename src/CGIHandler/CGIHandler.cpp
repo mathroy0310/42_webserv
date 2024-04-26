@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+	/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.cpp                                     :+:      :+:    :+:   */
@@ -54,8 +54,6 @@ void CGIHandler::setupEnvironment(void) {
 	env = new char*[tmp.size() + 1];
 	for (it = tmp.begin(); it != tmp.end(); it++){
 		std::string key = it->first;
-        if (key != REQ_CONTENT_LENGTH && key != REQ_QUERY_STRING && key != REQ_CONTENT_TYPE && key != REQ_METHOD)
-            key.insert(0, "HTTP_");
         convertToUpperCaseUnderscore(key);
         env[i++] = strdup((key + "=" + it->second).c_str());
 		std::cout << env[i - 1] << std::endl;

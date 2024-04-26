@@ -13,9 +13,23 @@ def main():
     <html>
     <head>
         <title>Hello, {escape(name)}!</title>
+        <style>
+            body {{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                font-family: Arial, sans-serif;
+            }}
+            div {{
+                text-align: center;
+            }}
+        </style>
     </head>
     <body>
-        <h1>Hello, {escape(name)}!</h1>
+        <div>
+            <h1>Hello, {escape(name)}!</h1>
+        </div>
     </body>
     </html>
     """)  # Print HTML response
