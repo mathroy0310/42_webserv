@@ -29,7 +29,7 @@
 /***********/
 
 #define MAX_CLIENTS SOMAXCONN
-#define BUFFER_SIZE 4096 // 4KB
+#define BUFFER_SIZE 4096 * 4 // 16KB
 
 /**********/
 /* Colors */

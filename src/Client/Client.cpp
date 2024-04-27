@@ -11,7 +11,7 @@ Client::Client(int socket_fd, t_server server) {
 
 Client::~Client(void) {
     if (this->_request) {
-        delete this->_request;
+        //delete this->_request;
     }
     if (this->_response) {
         delete this->_response;
@@ -68,10 +68,16 @@ void Client::read_socket(void) {
     this->_is_done_reading = false;
     while (len == BUFFER_SIZE) {
         bzero(buffer, BUFFER_SIZE + 1);
-        len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, 0);
+		Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());
+        len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
         if (len > 0) {
             data.insert(data.end(), buffer, buffer + len);
         } else if (len == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				len = BUFFER_SIZE;
+				sleep(1);
+				continue;
+			}
             Logger::get().log(ERROR, "Errno: %s", strerror(errno));
             this->disconnect();
             std::cout << FILE_LINE << std::endl;
