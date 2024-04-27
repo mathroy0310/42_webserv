@@ -41,7 +41,10 @@ void SocketWrapper::bindSocket(void) {
         throw std::runtime_error("Socket Option Failed `setsockopt()': " + std::string(strerror(errno)));
     if (bind(this->_socket_fd, (struct sockaddr *)&this->_addr, sizeof(_addr)) == -1)
         throw std::runtime_error("Socket Binding Failed `bind()': " + std::string(strerror(errno)));
-    if (fcntl(this->_socket_fd, F_SETFL, O_NONBLOCK) == -1)
+    int flags = fcntl(this->_socket_fd, F_GETFL, 0);
+    if (flags == -1)
+        throw std::runtime_error("Socket Flags Failed `fcntl()': " + std::string(strerror(errno)));
+    if (fcntl(this->_socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
         throw std::runtime_error("Socket Non-Blocking Failed `fcntl()': " + std::string(strerror(errno)));
 }
 

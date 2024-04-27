@@ -576,7 +576,12 @@ void HTTPResponse::executeCGI(void) {
 
     char buffer[BUFFER_SIZE + 1];
     bzero(buffer, BUFFER_SIZE + 1);
-    fcntl(cgi->getFdIn(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    int flags = fcntl(cgi->getFdIn(), F_GETFL, 0);
+    if (flags == -1) {
+        std::cerr << "Error getting file descriptor flags: " << strerror(errno) << std::endl;
+        throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+    }
+    fcntl(cgi->getFdIn(), F_SETFL, flags | O_NONBLOCK);
     std::cout << "fdIn: " << cgi->getFdIn() << std::endl;
     int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
     if (b == -1) {
