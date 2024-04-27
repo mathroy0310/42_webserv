@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:55 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/26 00:32:59 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/27 13:20:38 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Logger {
 	static Logger& get(void);
 
   private:
-    Logger(std::string log_file, e_logState state = ENABLED, e_logType type = BOTH, e_logLevel level = INFO);
+    Logger(std::string log_file, e_logState state = ENABLED, e_logType type = BOTH, e_logLevel level = DEBUG);
     const std::string _log_filename;
     const e_logState _log_state;
 	const e_logLevel _log_level;

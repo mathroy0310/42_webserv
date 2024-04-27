@@ -13,6 +13,7 @@ static bool isMethodAllowed(const std::string &method, const std::vector<std::st
     return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
 }
 
+
 const std::string getExtension(const std::string &path) {
     std::string extension;
     size_t dot = path.find_last_of('.');
@@ -20,6 +21,14 @@ const std::string getExtension(const std::string &path) {
         extension = path.substr(dot, path.length());
     }
     return (extension);
+}
+
+static bool isCgi(const std::string &path, std::map<std::string, std::string> cgi_map) {
+    std::string extension = getExtension(path);
+
+    if (cgi_map.find(extension) != cgi_map.end())
+        return (true);
+    return (false);
 }
 
 HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
@@ -502,8 +511,8 @@ void HTTPResponse::executeCGI(void) {
 
     std::string cgi_ext = getExtension(this->_path);
     cgi_exec = this->_directive_selector->getCgi()[cgi_ext];
-	Logger::get().log(DEBUG, "cgi_exec: %s", cgi_exec.c_str());
-	Logger::get().log(DEBUG, "cgi_ext: %s", cgi_ext.c_str());
+    Logger::get().log(DEBUG, "cgi_exec: %s", cgi_exec.c_str());
+    Logger::get().log(DEBUG, "cgi_ext: %s", cgi_ext.c_str());
     if (cgi_exec.empty() || cgi_ext.empty())
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
 
@@ -538,7 +547,7 @@ void HTTPResponse::executeCGI(void) {
         perror("execve : ");
         Logger::get().log(WARNING, "Execution failed: Please ensure that the server has the necessary permissions to "
                                    "access the required interpreter.");
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     int status;
@@ -614,7 +623,7 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
                           requested_content_lenght);
         throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
     }
-    if (this->_directive_selector->getIsCgi() == true) {
+    if (isCgi(this->_path, this->_directive_selector->getCgi())) {
         this->executeCGI();
         this->_is_uploaded = true;
         return;
@@ -698,7 +707,7 @@ std::string HTTPResponse::buildResponse(void) {
             this->HandleDeleteMethod(this->_path);
         else if (dir)
             this->listDirectory(dir);
-        else if (this->_directive_selector->getIsCgi() == true) {
+        else if (isCgi(this->_path, this->_directive_selector->getCgi())) {
             this->executeCGI();
         } else {
             this->servFile(this->_path, OK_STATUS, NOT_FOUND_STATUS);

@@ -29,7 +29,7 @@
 /***********/
 
 #define MAX_CLIENTS SOMAXCONN
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 4096 // 4KB
 
 /**********/
 /* Colors */
@@ -138,6 +138,7 @@
     "2e8b57;}p{color:#555;}ul{list-style-type:none;padding:0;}li{margin-bottom:10px;}a{color:#0066cc;text-decoration:" \
     "none;font-weight:bold;}a:hover{text-decoration:underline;}</style></head><body><h1>Welcome to "                   \
     "Webserv!</h1></body></html>"
+
 #define UPLOADED_DEFAULT_PAGE                                                                                        \
     "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" "                        \
     "content=\"width=device-width, initial-scale=1.0\"><title>Upload Done</title><style>body {font-family: \'Segoe " \

@@ -5,7 +5,7 @@ Client::Client(int socket_fd, t_server server) {
     this->_server = server;
     this->_status_code = 0;
     this->_request = NULL;
-    this->_is_done_reading = true;
+    this->_is_done_reading = false;
     this->_response = NULL;
 }
 
@@ -66,22 +66,31 @@ void Client::read_socket(void) {
     int len = BUFFER_SIZE;
 
     this->_is_done_reading = false;
-    while (len == BUFFER_SIZE) {
+    while (len == BUFFER_SIZE && this->_is_done_reading == false) {
         bzero(buffer, BUFFER_SIZE + 1);
         len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, 0);
         if (len > 0) {
             data.insert(data.end(), buffer, buffer + len);
         } else if (len == -1) {
+            Logger::get().log(ERROR, "Errno: %s", strerror(errno));
             this->disconnect();
+            std::cout << FILE_LINE << std::endl;
+            throw std::runtime_error("Client disconnected");
         } else if (len == 0) {
             Logger::get().log(ERROR, "Errno: %s", strerror(errno));
             this->disconnect();
-            throw std::runtime_error("Client disconnected");
+            std::cout << FILE_LINE << std::endl;
+			return;
+            // throw std::runtime_error("Client disconnected");
         }
+		std::cout << "len: " << len << std::endl;
     }
+    this->_is_done_reading = true;
     std::string totalData(data.begin(), data.end());
 
+
     Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
+	Logger::get().log(INFO, "Data received: %d", totalData.size());
     if (!this->getRequest()->getHeaderEnd()) {
         try {
             this->getRequest()->appendHeader(totalData.c_str(), totalData.size());
@@ -91,7 +100,6 @@ void Client::read_socket(void) {
     } else {
         this->getRequest()->appendFile(totalData.c_str(), totalData.size());
     }
-    this->_is_done_reading = true;
 }
 
 bool Client::write_socket(void) {

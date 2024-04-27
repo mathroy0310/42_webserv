@@ -20,6 +20,7 @@ class Client {
     HTTPRequest *getRequest(void) const;
     HTTPResponse *getResponse(void);
     int getSocketFd(void) const;
+    bool getIsDoneReading(void) const { return _is_done_reading; }
     //
 
     // Methods
@@ -27,8 +28,8 @@ class Client {
     void read_socket(void);
     bool write_socket(void);
 
-    bool _is_done_reading;
   private:
+    bool _is_done_reading;
     // Attributes
     int _socket_fd;
     int _status_code;

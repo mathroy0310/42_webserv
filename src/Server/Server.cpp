@@ -80,7 +80,7 @@ void Server::handleRequests(void) {
     while (client != this->_clients.end()) {
         std::system("sleep 0.05");
 
-        if (this->_multiplexer->canRead(client->getSocketFd()) || client->_is_done_reading == false) {
+        if (this->_multiplexer->canRead(client->getSocketFd()) && client->getIsDoneReading() == false) {
             try {
                 client->read_socket();
                 this->_multiplexer->addFd(client->getSocketFd(), POLLOUT);
@@ -88,7 +88,7 @@ void Server::handleRequests(void) {
                 throw std::runtime_error("Client disconnected");
             }
         }
-        if (this->_multiplexer->canWrite(client->getSocketFd()) && client->_is_done_reading == true) {
+        if (this->_multiplexer->canWrite(client->getSocketFd()) && client->getIsDoneReading() == true) {
             try {
                 if (client->write_socket()) {
                     this->_multiplexer->removeFd(client->getSocketFd());
@@ -106,31 +106,4 @@ void Server::handleRequests(void) {
         }
         client++;
     }
-}
-
-bool Server::write_socket(Client &client) {
-    HTTPRequest *request = client.getRequest();
-    HTTPResponse *response = client.getResponse();
-    bool keep_alive = request->getValueByKey(REQ_CONNECTION).empty()
-                          ? true
-                          : (request->getValueByKey(REQ_CONNECTION) == "keep-alive");
-
-    std::string buffer_reponse;
-
-    buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
-    if (response->getUploaded() == true) {
-        Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
-        int len = send(client.getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
-        if (len < BUFFER_SIZE) {
-            request->clear();
-            delete request;
-            client.setRequest(NULL);
-            delete response;
-            client.setResponse(NULL);
-            if (len == -1)
-                return (false);
-            return (keep_alive);
-        }
-    }
-    return (true);
 }
