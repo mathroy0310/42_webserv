@@ -66,7 +66,7 @@ void Client::read_socket(void) {
     int len = BUFFER_SIZE;
 
     this->_is_done_reading = false;
-    while (len == BUFFER_SIZE && this->_is_done_reading == false) {
+    while (len == BUFFER_SIZE) {
         bzero(buffer, BUFFER_SIZE + 1);
         len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, 0);
         if (len > 0) {

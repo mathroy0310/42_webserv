@@ -68,8 +68,6 @@ HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
     this->_location_index = -1;
     this->_upload_file_size = -1;
     this->_is_default_page_flag = false;
-    if (!this->_directive_selector)
-        delete this->_directive_selector;
     this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH));
     this->initStatusCodeMap();
     try {
@@ -99,11 +97,9 @@ HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     this->_content_length = 0;
     this->_location_index = -1;
     this->_upload_file_size = -1;
-    if (!this->_directive_selector)
-        delete this->_directive_selector;
-    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH));
     if (this->_request)
         this->setContentType(getExtension(this->_request->getValueByKey(REQ_PATH)));
+    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH));
     this->initStatusCodeMap();
     this->_path = this->matching();
     correctPath(this->_path);
@@ -692,7 +688,14 @@ void HTTPResponse::HandleDeleteMethod(const std::string &file_path) {
         throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
     }
     // Return a response to the client
-    this->setHeaders(NO_CONTENT_STATUS);
+    //this->setHeaders(NO_CONTENT_STATUS);
+    if (!this->_is_header_done) {
+        this->_s_header += "HTTP/1.1 ";
+        this->_s_header += this->_status_codes[NO_CONTENT_STATUS] + "\r\n";
+        this->_server.server_name.empty() ? "" : this->_s_header += "Server: " + this->_server.server_name + "\r\n";
+        this->_s_header += "\r\n";
+        this->_is_header_done = true;
+    }
     this->_s_response = this->_s_header;
     this->_s_header.clear();
 }
