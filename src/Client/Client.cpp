@@ -10,12 +10,12 @@ Client::Client(int socket_fd, t_server server) {
 }
 
 Client::~Client(void) {
-    if (this->_request) {
-        //delete this->_request;
-    }
-    if (this->_response) {
-        delete this->_response;
-    }
+    // if (this->_request) {
+    //     delete this->_request;
+    // }
+    // if (this->_response) {
+    //     delete this->_response;
+    // }
 }
 
 int Client::getSocketFd(void) const {
@@ -66,12 +66,15 @@ void Client::read_socket(void) {
     int len = BUFFER_SIZE;
 
     this->_is_done_reading = false;
-    while (len == BUFFER_SIZE) {
+    do {
         bzero(buffer, BUFFER_SIZE + 1);
 		Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());
         len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
         if (len > 0) {
             data.insert(data.end(), buffer, buffer + len);
+        } else if (len == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            sleep(1);
+            continue;
         } else if (len == -1) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				len = BUFFER_SIZE;
@@ -83,14 +86,36 @@ void Client::read_socket(void) {
             std::cout << FILE_LINE << std::endl;
             throw std::runtime_error("Client disconnected");
         } else if (len == 0) {
-            Logger::get().log(ERROR, "Errno: %s", strerror(errno));
-            this->disconnect();
             std::cout << FILE_LINE << std::endl;
-			return;
+            Logger::get().log(INFO, "Whole data received");
+            this->disconnect();
+            return;
             // throw std::runtime_error("Client disconnected");
-        }
-		std::cout << "len: " << len << std::endl;
-    }
+        }     
+    } while (len == BUFFER_SIZE || len == -1);
+    // while (len == BUFFER_SIZE) {
+    //     bzero(buffer, BUFFER_SIZE + 1);
+    //     len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, 0);
+    //     if (len > 0) {
+    //         data.insert(data.end(), buffer, buffer + len);
+    //     } else if (len == -1) {
+    //         if (errno == EAGAIN || errno == EWOULDBLOCK) {
+	// 			len = BUFFER_SIZE;
+	// 			continue;
+	// 		}
+    //         Logger::get().log(ERROR, "Errno: %s", strerror(errno));
+    //         this->disconnect();
+    //         std::cout << FILE_LINE << std::endl;
+    //         throw std::runtime_error("Client disconnected");
+    //     } else if (len == 0) {
+    //         Logger::get().log(ERROR, "Errno: %s", strerror(errno));
+    //         this->disconnect();
+    //         std::cout << FILE_LINE << std::endl;
+	// 		return;
+    //         // throw std::runtime_error("Client disconnected");
+    //     }
+	// 	std::cout << "len: " << len << std::endl;
+    // }
     this->_is_done_reading = true;
     std::string totalData(data.begin(), data.end());
 
@@ -122,11 +147,11 @@ bool Client::write_socket(void) {
         Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
         int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
         if (len < BUFFER_SIZE) {
-            request->clear();
-            delete request;
-            this->setRequest(NULL);
-            delete response;
-            this->setResponse(NULL);
+            // request->clear();
+            // delete request;
+            // this->setRequest(NULL);
+            // delete response;
+            // this->setResponse(NULL);
             if (len == -1)
                 return (false);
             return (keep_alive);

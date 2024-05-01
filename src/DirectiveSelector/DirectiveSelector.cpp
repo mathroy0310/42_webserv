@@ -27,6 +27,9 @@ static int findLocationIndex(std::string &uri, std::vector<t_location> locations
 DirectiveSelector::DirectiveSelector(t_server &server, std::string &uri) {
 	this->_server = server;
     this->_location_index = findLocationIndex(uri, server.locations);
+	Logger::get().log(DEBUG, "Location index: %d", this->_location_index);
+	if (this->_location_index < 0)
+		return ;
 	this->_location = this->_server.locations[this->_location_index];
 }
 
@@ -34,7 +37,6 @@ DirectiveSelector::DirectiveSelector(t_server &server, std::string &uri) {
 DirectiveSelector::~DirectiveSelector(void) {}
 
 // Methods
-
 std::string DirectiveSelector::getRoot(void) const {
 	if (this->_location_index < 0)
 		return (this->_server.root);
@@ -50,6 +52,9 @@ std::map<unsigned int, std::string> DirectiveSelector::getErrorPages(void) const
 
 std::vector<std::string> DirectiveSelector::getAllowedMethods(void) const {
 	if (this->_location_index < 0)
+		return (this->_server.allowed_methods);
+	Logger::get().log(DEBUG, "Allowed methods");
+	if (this->_location.allowed_methods.empty())
 		return (this->_server.allowed_methods);
 	return (this->_location.allowed_methods);
 }

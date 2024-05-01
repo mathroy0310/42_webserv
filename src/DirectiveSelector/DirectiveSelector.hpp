@@ -24,7 +24,6 @@ class DirectiveSelector {
 
   private:
     // Methods
-
     // Attributes
     t_server _server;
 	t_location _location;

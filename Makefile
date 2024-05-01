@@ -3,16 +3,16 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: maroy <maroy@student.42.fr>                +#+  +:+       +#+         #
+#    By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/15 14:01:52 by maroy             #+#    #+#              #
-#    Updated: 2024/04/05 02:04:49 by maroy            ###   ########.fr        #
+#    Updated: 2024/05/01 13:38:48 by rmarceau         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = webserv
 CCPP = c++
-CPPFLAGS = -Wall -Werror -Wextra -std=c++11 -g -fsanitize=address  -I ./include -I ./src
+CPPFLAGS = -Wall -Werror -Wextra -std=c++11 -g -I ./include -I ./src -fsanitize=address
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -39,9 +39,12 @@ fclean: clean
 	@rm -rf $(NAME)
 	@echo	"$(RED)All deleted!$(DEFAULT)"
 
+leaks: all
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
+
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean leaks re
 
 RED = \033[1;31m
 GREEN = \033[1;32m

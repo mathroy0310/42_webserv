@@ -10,6 +10,13 @@ static void correctPath(std::string &path) {
 }
 
 static bool isMethodAllowed(const std::string &method, const std::vector<std::string> &allowed_methods) {
+    std::vector<std::string>::const_iterator it = allowed_methods.begin();
+
+    std::cout << "method: " << method << std::endl;
+    while (it != allowed_methods.end()) {
+        std::cout << "allowed method: " << *it << std::endl;
+        it++;
+    }
     return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
 }
 
@@ -390,7 +397,7 @@ void HTTPResponse::methodNotAllowed(void) {
 
     if (method != "GET" && method != "POST" && method != "DELETE")
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
-    else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == true)
+    else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == false)
         throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
 }
 
