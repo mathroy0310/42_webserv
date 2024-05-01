@@ -12,10 +12,9 @@
 
 #include "SocketWrapper.hpp"
 
-SocketWrapper::SocketWrapper(const std::string host, const int port, const int max_clients) {
+SocketWrapper::SocketWrapper(const std::string host, const int port) {
     this->_host.s_addr = inet_addr(host.c_str());
     this->_listen_port = port;
-    this->_max_clients = max_clients;
     this->_addr_len = sizeof(this->_addr);
 }
 SocketWrapper::~SocketWrapper(void) {}
@@ -49,7 +48,7 @@ void SocketWrapper::bindSocket(void) {
 }
 
 void SocketWrapper::listenSocket(void) {
-    if (listen(this->_socket_fd, this->_max_clients) == -1)
+    if (listen(this->_socket_fd, SOMAXCONN) == -1)
         throw std::runtime_error("Socket Listening Failed `listen()'");
 }
 
@@ -59,21 +58,10 @@ int SocketWrapper::acceptSocket(void) {
         Logger::get().log(ERROR, "Socket Accept Failed `accept()'");
         return (-1);
     }
-    // if (!this->checkMaxClients()) {
-    //     close(new_client_fd);
-    //     return (SERVICE_UNAVAILABLE_STATUS);
-    // }
     this->_clients_fd.push_back(new_client_fd);
     return (new_client_fd);
 }
 
-bool SocketWrapper::checkMaxClients(void) {
-    if (this->_max_clients <= this->_clients_fd.size()) {
-        std::cerr << WARN_PREFIX "Max clients reached\n" << FILE_LINE;
-        return (false);
-    }
-    return (true);
-}
 
 void SocketWrapper::removeClient(int client_fd) {
     std::vector<int>::iterator it = this->_clients_fd.begin();

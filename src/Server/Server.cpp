@@ -46,9 +46,8 @@ void Server::setupServerConnections(void) {
     for (size_t i = 0; i < this->_config.servers.size(); i++) {
         std::string ip_address = this->_config.servers[i].ip_address;
         int port = this->_config.servers[i].port;
-        int max_clients = this->_config.servers[i].max_client_size;
 
-        SocketWrapper new_socket(ip_address, port, max_clients);
+        SocketWrapper new_socket(ip_address, port);
         new_socket.init();
         this->_multiplexer->addFd(new_socket.getSocketFd(), POLLIN);
         this->_listening_sockets.insert(std::make_pair(new_socket.getSocketFd(), new_socket));

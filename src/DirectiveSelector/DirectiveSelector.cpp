@@ -40,11 +40,15 @@ DirectiveSelector::~DirectiveSelector(void) {}
 std::string DirectiveSelector::getRoot(void) const {
 	if (this->_location_index < 0)
 		return (this->_server.root);
+	if (this->_location.root.empty())
+		return (this->_server.root);
 	return (this->_location.root);
 }
 
 std::map<unsigned int, std::string> DirectiveSelector::getErrorPages(void) const {
 	if (this->_location_index < 0)
+		return (this->_server.error_pages);
+	if (this->_location.error_pages.empty())
 		return (this->_server.error_pages);
 	return (this->_location.error_pages);
 	 
@@ -62,17 +66,23 @@ std::vector<std::string> DirectiveSelector::getAllowedMethods(void) const {
 std::string DirectiveSelector::getUploadPath(void) const {
 	if (this->_location_index < 0)
 		return (this->_server.upload_path);
+	if (this->_location.upload_path.empty())
+		return (this->_server.upload_path);
 	return (this->_location.upload_path);
 }
 
 std::string DirectiveSelector::getIndex(void) const {
 	if (this->_location_index < 0)
 		return (this->_server.index);
+	if (this->_location.index.empty())
+		return (this->_server.index);
 	return (this->_location.index);
 }
 
 bool DirectiveSelector::getAutoindex(void) const {
 	if (this->_location_index < 0)
+		return (this->_server.is_autoindex);
+	if (this->_location.is_autoindex == false)
 		return (this->_server.is_autoindex);
 	return (this->_location.is_autoindex);
 }
@@ -86,17 +96,23 @@ std::string DirectiveSelector::getPath(void) const {
 std::string DirectiveSelector::getRedirect_to(void) const {
 	if (this->_location_index < 0)
 		return (this->_server.redirect_to);
+	if (this->_location.redirect_to.empty())
+		return (this->_server.redirect_to);
 	return (this->_location.redirect_to);
 }
 
 int DirectiveSelector::getRedirect_code(void) const {
 	if (this->_location_index < 0)
 		return (this->_server.redirect_code);
+	if (this->_location.redirect_code < 0)
+		return (this->_server.redirect_code);
 	return (this->_location.redirect_code);
 }
 
 std::map<std::string,std::string> DirectiveSelector::getCgi(void) const {
 	if (this->_location_index < 0)
+		return (this->_server.cgi);
+	if (this->_location.cgi.empty())
 		return (this->_server.cgi);
 	return (this->_location.cgi);
 }
@@ -107,12 +123,6 @@ unsigned long long DirectiveSelector::getMaxBodySize(void) const {
 	if (this->_location.max_body_size == 0)
 		return (this->_server.max_body_size);
 	return (this->_location.max_body_size);
-}
-
-bool DirectiveSelector::getIsCgi(void) const {
-	if (this->_location_index < 0)
-		return (this->_server.is_cgi);
-	return (this->_location.is_cgi);
 }
 
 ///--...--...---.--.--.--...--..-----....--..-.--..---.///

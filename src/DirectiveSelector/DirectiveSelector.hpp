@@ -20,7 +20,6 @@ class DirectiveSelector {
     int getRedirect_code(void) const;
     std::map<std::string, std::string> getCgi(void) const;
     unsigned long long getMaxBodySize(void) const;
-    bool getIsCgi(void) const;
 
   private:
     // Methods

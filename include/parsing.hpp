@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 21:50:28 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/01 16:50:05 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/01 19:05:44 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ typedef struct s_location {
     int redirect_code;
     std::string redirect_to;
     bool is_autoindex;
-    bool is_cgi;
     unsigned long long max_body_size;
     std::string path;
     std::string root;
@@ -45,7 +44,6 @@ typedef struct s_server {
     int port;
     std::string ip_address;
     bool is_autoindex;
-    bool is_cgi;
     unsigned long long max_body_size;
     size_t max_client_size;
     std::string server_name;
