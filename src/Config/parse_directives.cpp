@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 20:48:46 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/13 00:06:45 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/01 16:48:24 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,19 +223,6 @@ void set_cgi_ext(std::string &value, const std::string &key, std::map<std::strin
 
 		//std::cout << "CGI : " << cgi[".py"] << std::endl;
     }
-}
-
-size_t set_max_client_size(std::string &value, const std::string &key) {
-    if (value.empty() || value == ";") {
-        std::cerr << ERR_MSG_NO_VALUE(key) << FILE_LINE;
-        exit(EXIT_FAILURE);
-    }
-    if (value.find_first_not_of("0123456789") != value.npos) {
-        std::cerr << ERR_MSG_INVALID_VALUE(key, value) << FILE_LINE;
-        exit(EXIT_FAILURE);
-    }
-    size_t max_client_size = std::stoi(value);
-    return (max_client_size);
 }
 
 unsigned long long set_max_body_size(std::string &value, const std::string &key) {

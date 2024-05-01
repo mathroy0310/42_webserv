@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/13 00:12:22 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/01 16:48:31 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,6 @@ void parse_server_directive(std::string &key, std::string &value, t_server &serv
         server.is_autoindex = set_autoindex(value, key);
     else if (key == "listen")
         server.port = set_port_and_ip_address(value, key, server.ip_address);
-    else if (key == "max_client_size")
-        server.max_client_size = set_max_client_size(value, key);
     else if (key == "error_pages")
         set_error_pages(value, key, server.error_pages);
     else if (key == "allowed_methods")
