@@ -93,29 +93,6 @@ void Client::read_socket(void) {
             // throw std::runtime_error("Client disconnected");
         }     
     } while (len == BUFFER_SIZE || len == -1);
-    // while (len == BUFFER_SIZE) {
-    //     bzero(buffer, BUFFER_SIZE + 1);
-    //     len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, 0);
-    //     if (len > 0) {
-    //         data.insert(data.end(), buffer, buffer + len);
-    //     } else if (len == -1) {
-    //         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-	// 			len = BUFFER_SIZE;
-	// 			continue;
-	// 		}
-    //         Logger::get().log(ERROR, "Errno: %s", strerror(errno));
-    //         this->disconnect();
-    //         std::cout << FILE_LINE << std::endl;
-    //         throw std::runtime_error("Client disconnected");
-    //     } else if (len == 0) {
-    //         Logger::get().log(ERROR, "Errno: %s", strerror(errno));
-    //         this->disconnect();
-    //         std::cout << FILE_LINE << std::endl;
-	// 		return;
-    //         // throw std::runtime_error("Client disconnected");
-    //     }
-	// 	std::cout << "len: " << len << std::endl;
-    // }
     this->_is_done_reading = true;
     std::string totalData(data.begin(), data.end());
 

@@ -12,9 +12,9 @@ static void correctPath(std::string &path) {
 static bool isMethodAllowed(const std::string &method, const std::vector<std::string> &allowed_methods) {
     std::vector<std::string>::const_iterator it = allowed_methods.begin();
 
-    std::cout << "method: " << method << std::endl;
+	Logger::get().log(DEBUG, "method: %s", method.c_str());
     while (it != allowed_methods.end()) {
-        std::cout << "allowed method: " << *it << std::endl;
+		Logger::get().log(DEBUG, "allowed method: %s", it->c_str());
         it++;
     }
     return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
@@ -396,7 +396,10 @@ void HTTPResponse::methodNotAllowed(void) {
     const std::string &method = this->_request->getValueByKey(REQ_METHOD);
 
     if (method != "GET" && method != "POST" && method != "DELETE")
+	{
+		Logger::get().log(ERROR, "Method not allowed: %s", method.c_str());
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
+	}
     else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == false)
         throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
 }
@@ -517,7 +520,10 @@ void HTTPResponse::executeCGI(void) {
     Logger::get().log(DEBUG, "cgi_exec: %s", cgi_exec.c_str());
     Logger::get().log(DEBUG, "cgi_ext: %s", cgi_ext.c_str());
     if (cgi_exec.empty() || cgi_ext.empty())
+	{
+		Logger::get().log(ERROR, "CGI not found");
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
+	}
 
     int fd[2];
     if (pipe(fd) == -1) {
@@ -569,7 +575,7 @@ void HTTPResponse::executeCGI(void) {
     if (WIFEXITED(status))
         status = WEXITSTATUS(status);
     if (status) {
-        std::cout << "exit with !0 status\n";
+		Logger::get().log(DEBUG, "exit with !0 status");
         if (access(this->_path.c_str(), F_OK) < 0)
             throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
         std::cerr << FILE_LINE;
@@ -585,7 +591,7 @@ void HTTPResponse::executeCGI(void) {
         throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
     }
     fcntl(cgi->getFdIn(), F_SETFL, flags | O_NONBLOCK);
-    std::cout << "fdIn: " << cgi->getFdIn() << std::endl;
+	Logger::get().log(DEBUG, "fdIn: %d", cgi->getFdIn());
     int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
     if (b == -1) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {

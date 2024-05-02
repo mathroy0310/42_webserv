@@ -56,7 +56,7 @@ void CGIHandler::setupEnvironment(void) {
 		std::string key = it->first;
         convertToUpperCaseUnderscore(key);
         env[i++] = strdup((key + "=" + it->second).c_str());
-		std::cout << env[i - 1] << std::endl;
+		Logger::get().log(DEBUG, "env[%d]=%s", i-1, env[i - 1]);
     }
     env[i] = NULL;
 	this->_env = env;

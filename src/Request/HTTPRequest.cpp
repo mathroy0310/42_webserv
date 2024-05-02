@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/20 23:51:16 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/02 11:51:25 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,8 +96,11 @@ void HTTPRequest::appendHeader(const char *buffer, int len) {
                 throw(BAD_REQUEST_STATUS);
             if (content_lenght && transfer)
                 throw(BAD_REQUEST_STATUS);
-            if (transfer && this->_headers[REQ_TRANSFER] != "chunked")
+            if (transfer && this->_headers[REQ_TRANSFER] != "gzip" && this->_headers[REQ_TRANSFER] != "chunked")
+			{
+				Logger::get().log(ERROR, "Transfer-Encoding not implemented");
                 throw(NOT_IMPLEMENTED_STATUS);
+			}
         }
     }
 }
