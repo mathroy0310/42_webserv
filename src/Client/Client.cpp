@@ -160,7 +160,7 @@ bool Client::write_socket(void) {
 
     buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
     if (response->getUploaded() == true) {
-        Logger::get().log(DEBUG, "Response sent: %s", buffer_reponse.c_str());
+        Logger::get().log(INFO, "Response sent: %s", buffer_reponse.c_str());
         int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
         if (len < BUFFER_SIZE) {
             // request->clear();

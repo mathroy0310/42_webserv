@@ -37,6 +37,14 @@ static bool isCgi(const std::string &path, std::map<std::string, std::string> cg
     return (false);
 }
 
+static std::string extractContentType(const std::string &str)
+{
+	size_t c = str.find(';');
+	if (c != std::string::npos)
+		return (trim(str.substr(0, c)));
+	return ("");
+}
+
 HTTPResponse::HTTPResponse(void) : _version("HTTP/1.1") {}
 
 void HTTPResponse::initStatusCodeMap(void) {
@@ -453,6 +461,7 @@ std::string HTTPResponse::getBoundary() {
     size_t index = req_con_type.find(tmp);
     if (index != std::string::npos)
         return ("--" + req_con_type.substr(index + tmp.length(), -1));
+	std::cout << FILE_LINE << std::endl;
     throw std::runtime_error(this->returnError(BAD_REQUEST_STATUS));
 }
 
@@ -475,7 +484,12 @@ static std::string getFileName(const std::string &head) {
 
 bool HTTPResponse::uploadFile(std::string &upload_path) {
     std::string &upload_body = this->_request->getBody();
-    std::string boundary = getBoundary();
+	Logger::get().log(DEBUG, "upload_body: %s", upload_body.c_str());
+	Logger::get().log(DEBUG, "content-lenght: %lu", this->_request->getContentLenght());
+	if (upload_body.empty() || this->_request->getContentLenght() == 0)
+		throw std::runtime_error(this->returnError(OK_STATUS));
+    
+	std::string boundary = getBoundary();
 
     if (this->_upload_head.empty()) {
         std::size_t index = upload_body.find("\r\n\r\n");
@@ -668,6 +682,11 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         return;
     }
     if (!upload_path.empty()) {
+
+		Logger::get().log(DEBUG, "Request Content Type: %s", this->_request->getValueByKey(REQ_CONTENT_TYPE).c_str());
+		if (extractContentType(this->_request->getValueByKey(REQ_CONTENT_TYPE)) != "multipart/form-data")
+            throw std::runtime_error(returnError(UNSUPPORTED_MEDIA_TYPE_STATUS));
+
         Logger::get().log(INFO, "upload_path: %s", upload_path.c_str());
         DIR *upload_dir = opendir(upload_path.c_str());
         if (!upload_dir)
@@ -745,7 +764,9 @@ std::string HTTPResponse::buildResponse(void) {
     try {
         std::string requested_method = this->_request->getValueByKey(REQ_METHOD);
         this->methodNotAllowed();
-        if (!this->_server.redirect_to.empty() || (!this->_directive_selector->getRedirect_to().empty()))
+		std::string requested_path = this->_request->getValueByKey(REQ_PATH);
+		Logger::get().log(DEBUG, "requested_path: %c", requested_path[requested_path.length() - 1]);
+        if (!this->_directive_selector->getRedirect_to().empty() && requested_path[requested_path.length() - 1] != '/')
             this->locationRedirection();
         else if (requested_method == "POST")
             this->HandlePostMethod(dir);
