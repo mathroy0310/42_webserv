@@ -57,6 +57,33 @@ void Client::disconnect(void) {
     this->_socket_fd = -1;
 }
 
+static std::string decode_chunked(const std::string &chunked_string){
+	std::string decoded_string;
+	std::istringstream iss(chunked_string);
+
+	while (true){
+		std::string chunk_size_str;
+		std::getline(iss, chunk_size_str, '\r');
+		iss.ignore(); // ignore '\n'
+
+		std::istringstream size_stream(chunk_size_str);
+		size_stream >> std::hex >> std::ws;
+		size_t chunk_size;
+		size_stream >> chunk_size;
+
+		if (chunk_size == 0)
+			break;
+
+        std::string chunk_data(chunk_size, '\0');
+        iss.read(&chunk_data[0], chunk_size);
+
+        iss.ignore(2); // ignore '\r\n'
+
+        decoded_string += chunk_data;
+    }
+	return decoded_string;
+}
+
 void Client::read_socket(void) {
     if (!this->getRequest())
         this->setRequest(this->createNewRequest());
@@ -108,6 +135,14 @@ void Client::read_socket(void) {
     } else {
         this->getRequest()->appendFile(totalData.c_str(), totalData.size());
     }
+	if (this->getRequest()->getValueByKey(REQ_TRANSFER) == "chunked")
+	{
+		std::string tmp = decode_chunked(this->getRequest()->getBody());
+		this->getRequest()->setBody(tmp);
+	}
+
+	if (!this->getRequest()->getHeaderEnd())
+		this->setStatus(BAD_REQUEST_STATUS);
 }
 
 bool Client::write_socket(void) {

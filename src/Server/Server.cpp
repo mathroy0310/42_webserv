@@ -77,6 +77,7 @@ void Server::acceptConnections() {
 void Server::handleRequests(void) {
     std::vector<Client>::iterator client = this->_clients.begin();
     while (client != this->_clients.end()) {
+		std::system("sleep 0.025");
         if (this->_multiplexer->canRead(client->getSocketFd()) && client->getIsDoneReading() == false) {
             try {
                 client->read_socket();

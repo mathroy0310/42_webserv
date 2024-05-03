@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/02 11:51:25 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/02 19:42:06 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,10 @@ std::string &HTTPRequest::getValueByKey(std::string key) {
 
 size_t HTTPRequest::getContentLenght(void) {
     return (std::atoll(this->_headers[REQ_CONTENT_LENGTH].c_str()));
+}
+
+void HTTPRequest::setBody(std::string body) {
+    this->_body = body;
 }
 
 void HTTPRequest::appendFile(const char *buffer, int len) {
