@@ -6,16 +6,16 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/22 20:53:10 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/03 00:19:42 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "defines.h"
 #include "CGIHandler/CGIHandler.hpp"
 #include "DirectiveSelector/DirectiveSelector.hpp"
 #include "Request/HTTPRequest.hpp"
+#include "defines.h"
 
 class DirectiveSelector;
 class CGIHandler;
@@ -47,7 +47,6 @@ class HTTPResponse {
     HTTPRequest *getRequest(void) const;
     const std::string &getResponse(void) const;
     bool getUploaded(void) const;
-
 
   private:
     void executeCGI(void);
@@ -97,8 +96,9 @@ class HTTPResponse {
     bool _is_header_done;
     bool _is_uploaded;
     bool _is_default_page_flag;
+    bool _is_chunked;
     t_server _server;
-	CGIHandler *cgi;
-	static bool is_selector_created;
-	DirectiveSelector *_directive_selector;
+    CGIHandler *cgi;
+    static bool is_selector_created;
+    DirectiveSelector *_directive_selector;
 };

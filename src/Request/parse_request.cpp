@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:21:16 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/08 20:37:20 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/03 00:51:10 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,10 @@ void set_key_and_value(std::string line, std::map<std::string, std::string> &hea
     if (value[0] == '\"' && value[value.length() - 1] == '"')
         value = value.substr(1, value.length() - 2);
     if (key == "Host" && !headermap[key].empty())
+	{
+        std::cout << FILE_LINE << std::endl;
         throw(BAD_REQUEST_STATUS);
+	}
     headermap[key] = value;
     if (key == "Host") {
         value = headermap[key];
@@ -89,7 +92,10 @@ void parse_start_line(std::map<std::string, std::string> &headermap, std::string
             throw(HTTP_VERSION_NOT_SUPPORTED_STATUS);
 
     } else
+	{
+        std::cout << FILE_LINE << std::endl;
         throw(BAD_REQUEST_STATUS);
+	}
 }
 
 static void remove_spaces(std::string &buffer, size_t index) {
@@ -133,7 +139,10 @@ void check_request(std::string buffer) {
         check_line(lines[i], stack, is_quotes);
     }
     if (stack.size())
+	{
+		std::cout << FILE_LINE << std::endl;
         throw(BAD_REQUEST_STATUS);
+	}
 }
 
 void check_path(std::string path, std::string connection) {
@@ -143,5 +152,8 @@ void check_path(std::string path, std::string connection) {
         throw(0);
     }
     if (path.find_first_not_of(ALLOWED_URI_CHARS) != std::string::npos)
+	{
+        std::cout << FILE_LINE << std::endl;
         throw(BAD_REQUEST_STATUS);
+	}
 }

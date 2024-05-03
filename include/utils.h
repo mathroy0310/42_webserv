@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:29:38 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/05 17:51:14 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/03 00:19:22 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,5 +32,11 @@ std::vector<std::string> split_line(std::string line, std::string delim);
 /*************************/
 
 std::string directory_listing(DIR *dir, std::string root);
+
+/**************/
+/* itohex.cpp */
+/**************/
+
+std::string itohex(int n);
 
 #endif  // UTILS_H

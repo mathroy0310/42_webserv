@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/05 02:40:50 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/02 19:42:06 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/03 00:50:32 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,15 +96,18 @@ void HTTPRequest::appendHeader(const char *buffer, int len) {
         if (this->_headers[REQ_METHOD] == "POST") {
             bool content_lenght = !this->_headers[REQ_CONTENT_LENGTH].empty();
             bool transfer = !this->_headers[REQ_TRANSFER].empty();
-            if (!content_lenght && !transfer)
+            if (!content_lenght && !transfer) {
+                std::cout << FILE_LINE << std::endl;
                 throw(BAD_REQUEST_STATUS);
-            if (content_lenght && transfer)
+            }
+            if (content_lenght && transfer) {
+                std::cout << FILE_LINE << std::endl;
                 throw(BAD_REQUEST_STATUS);
-            if (transfer && this->_headers[REQ_TRANSFER] != "gzip" && this->_headers[REQ_TRANSFER] != "chunked")
-			{
-				Logger::get().log(ERROR, "Transfer-Encoding not implemented");
+            }
+            if (transfer && this->_headers[REQ_TRANSFER] != "chunked") {
+                Logger::get().log(ERROR, "Transfer-Encoding not implemented");
                 throw(NOT_IMPLEMENTED_STATUS);
-			}
+            }
         }
     }
 }

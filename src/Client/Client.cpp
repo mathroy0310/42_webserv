@@ -130,6 +130,7 @@ void Client::read_socket(void) {
         try {
             this->getRequest()->appendHeader(totalData.c_str(), totalData.size());
         } catch (int status) {
+			std::cout << FILE_LINE << std::endl;
             this->setStatus(status);
         }
     } else {
@@ -142,7 +143,10 @@ void Client::read_socket(void) {
 	}
 
 	if (!this->getRequest()->getHeaderEnd())
-		this->setStatus(BAD_REQUEST_STATUS);
+	{
+        std::cout << FILE_LINE << std::endl;
+        this->setStatus(BAD_REQUEST_STATUS);
+	}
 }
 
 bool Client::write_socket(void) {

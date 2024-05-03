@@ -12,14 +12,13 @@ static void correctPath(std::string &path) {
 static bool isMethodAllowed(const std::string &method, const std::vector<std::string> &allowed_methods) {
     std::vector<std::string>::const_iterator it = allowed_methods.begin();
 
-	Logger::get().log(DEBUG, "method: %s", method.c_str());
+    Logger::get().log(DEBUG, "method: %s", method.c_str());
     while (it != allowed_methods.end()) {
-		Logger::get().log(DEBUG, "allowed method: %s", it->c_str());
+        Logger::get().log(DEBUG, "allowed method: %s", it->c_str());
         it++;
     }
     return (std::find(allowed_methods.begin(), allowed_methods.end(), method) != allowed_methods.end());
 }
-
 
 const std::string getExtension(const std::string &path) {
     std::string extension;
@@ -75,10 +74,13 @@ HTTPResponse::HTTPResponse(int status, t_server &server) : _server(server) {
     this->_location_index = -1;
     this->_upload_file_size = -1;
     this->_is_default_page_flag = false;
-    this->_directive_selector = new DirectiveSelector(server, this->_request->getValueByKey(REQ_PATH));
+    this->_is_chunked = false;
+    std::string allo("blhasdsah");
+    this->_directive_selector = new DirectiveSelector(server, allo);
     this->initStatusCodeMap();
     try {
-        std::cerr << ERR_PREFIX << "request " << status << FILE_LINE;
+        std::cerr << ERR_PREFIX << "request " << status << '\n' << FILE_LINE;
+        this->returnError(status);
     } catch (std::exception &e) {
     }
 }
@@ -101,6 +103,7 @@ HTTPResponse::HTTPResponse(HTTPRequest *request, t_server &server)
     this->cgi = NULL;
     this->_is_uploaded = true;
     this->_is_default_page_flag = false;
+    this->_is_chunked = false;
     this->_content_length = 0;
     this->_location_index = -1;
     this->_upload_file_size = -1;
@@ -215,7 +218,7 @@ void HTTPResponse::setContentType(const std::string &extension) {
     }
     std::string tmp = content_type_map[extension];
     if (tmp.empty()) {
-        tmp = "text/plain";
+        tmp = "application/octet-stream";
     }
     this->mime_type = tmp;
 }
@@ -261,6 +264,8 @@ void HTTPResponse::setHeaders(int status) {
         this->_s_header += "Accept-Ranges: bytes\r\n";
         this->_s_header += "Content-Type: " + this->mime_type + "\r\n";
         this->_s_header += "Content-Length: " + std::to_string(this->_content_length) + "\r\n";
+        if (this->_request && this->_request->getValueByKey(REQ_COOKIES).length() > 0)
+            this->_s_header += "Set-Cookie: " + this->_request->getValueByKey(REQ_COOKIES) + "\r\n";
         this->_s_header += "\r\n";
         this->_is_header_done = true;
     }
@@ -326,7 +331,10 @@ std::string HTTPResponse::fileToString(const std::string &file_path, int error_s
 }
 
 const std::string &HTTPResponse::returnError(int status) {
-    std::map<unsigned int, std::string> error_pages = this->_directive_selector->getErrorPages();
+    // std::map<unsigned int, std::string> error_pages = this->_directive_selector->getErrorPages();
+
+    std::map<unsigned int, std::string> error_pages = this->_server.error_pages;
+
     try {
         this->_body = fileToString(error_pages[status], status);
     } catch (const std::exception &e) {
@@ -395,12 +403,10 @@ void HTTPResponse::listDirectory(DIR *dir) {
 void HTTPResponse::methodNotAllowed(void) {
     const std::string &method = this->_request->getValueByKey(REQ_METHOD);
 
-    if (method != "GET" && method != "POST" && method != "DELETE")
-	{
-		Logger::get().log(ERROR, "Method not allowed: %s", method.c_str());
+    if (method != "GET" && method != "POST" && method != "DELETE") {
+        Logger::get().log(ERROR, "Method not allowed: %s", method.c_str());
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
-	}
-    else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == false)
+    } else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == false)
         throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
 }
 
@@ -411,6 +417,8 @@ bool HTTPResponse::directoryRedirection() {
             this->_s_header = "HTTP/1.1 ";
             this->_s_header += this->_status_codes[MOVED_PERMANENTLY_STATUS] + "\r\n";
             this->_s_header += "Content-Lenght: 0\r\n";
+            if (this->_request && this->_request->getValueByKey(REQ_COOKIES).length() > 0)
+                this->_s_header += "Set-Cookie: " + this->_request->getValueByKey(REQ_COOKIES) + "\r\n";
             this->_s_header += "Location: " + request_path + "/\r\n";
             this->_s_header += "\r\n";
             this->_is_header_done = true;
@@ -429,6 +437,8 @@ void HTTPResponse::locationRedirection() {
         this->_s_header += "HTTP/1.1 ";
         this->_s_header += this->_status_codes[redir_code] + "\r\n";
         this->_s_header += "Content-Lenght: 0\r\n";
+        if (this->_request && this->_request->getValueByKey(REQ_COOKIES).length() > 0)
+            this->_s_header += "Set-Cookie: " + this->_request->getValueByKey(REQ_COOKIES) + "\r\n";
         this->_s_header += "Location: " + redir_to;
         this->_s_header += "\r\n";
         this->_is_header_done = true;
@@ -454,8 +464,10 @@ static std::string getFileName(const std::string &head) {
         if (quotePos != std::string::npos) {
             std::string filename = filenameSubstring.substr(0, quotePos);
             return (filename);
-        } else
+        } else {
+            std::cout << FILE_LINE << std::endl;
             throw(BAD_REQUEST_STATUS);
+        }
     } else {
         return ("");
     }
@@ -519,11 +531,10 @@ void HTTPResponse::executeCGI(void) {
     cgi_exec = this->_directive_selector->getCgi()[cgi_ext];
     Logger::get().log(DEBUG, "cgi_exec: %s", cgi_exec.c_str());
     Logger::get().log(DEBUG, "cgi_ext: %s", cgi_ext.c_str());
-    if (cgi_exec.empty() || cgi_ext.empty())
-	{
-		Logger::get().log(ERROR, "CGI not found");
+    if (cgi_exec.empty() || cgi_ext.empty()) {
+        Logger::get().log(ERROR, "CGI not found");
         throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
-	}
+    }
 
     int fd[2];
     if (pipe(fd) == -1) {
@@ -575,7 +586,7 @@ void HTTPResponse::executeCGI(void) {
     if (WIFEXITED(status))
         status = WEXITSTATUS(status);
     if (status) {
-		Logger::get().log(DEBUG, "exit with !0 status");
+        Logger::get().log(DEBUG, "exit with !0 status");
         if (access(this->_path.c_str(), F_OK) < 0)
             throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
         std::cerr << FILE_LINE;
@@ -591,7 +602,7 @@ void HTTPResponse::executeCGI(void) {
         throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
     }
     fcntl(cgi->getFdIn(), F_SETFL, flags | O_NONBLOCK);
-	Logger::get().log(DEBUG, "fdIn: %d", cgi->getFdIn());
+    Logger::get().log(DEBUG, "fdIn: %d", cgi->getFdIn());
     int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
     if (b == -1) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -608,7 +619,6 @@ void HTTPResponse::executeCGI(void) {
     Logger::get().log(DEBUG, "CGI response: %s", this->_body.c_str());
     Logger::get().log(DEBUG, "this->_is_header_done = %d", this->_is_header_done);
     if (!this->_is_header_done) {
-        this->_s_header += "HTTP/1.1 200 OK\r\n";
         Logger::get().log(DEBUG, "this->_s_header: %s", this->_s_header.c_str());
         size_t find_end_of_head = this->_body.find("\r\n\r\n");
         if (find_end_of_head != this->_body.npos) {
@@ -616,10 +626,25 @@ void HTTPResponse::executeCGI(void) {
             this->_body = this->_body.substr(find_end_of_head + 4, -1);
         }
         Logger::get().log(DEBUG, "this->_body: %s", this->_body.c_str());
+        this->_s_header += "HTTP/1.1 200 OK\r\n";
+        if (this->_s_header.find("Content-Lenght") == std::string::npos) {
+            this->_s_header.insert(this->_s_header.length() - 4, "\r\nTransfer-Encoding: chunked");
+            this->_is_chunked = true;
+            this->_body.insert(0, itohex(this->_body.length()) + "\r\n");
+            this->_body.insert(this->_body.length(), "\r\n");
+        }
         this->_is_header_done = true;
         this->_s_response = this->_s_header + this->_body;
         Logger::get().log(DEBUG, "this->_s_response: %s", this->_s_response.c_str());
+    } else {
+        if (this->_is_chunked) {
+            this->_body.insert(0, itohex(this->_body.length()) + "\r\n");
+            this->_body.insert(this->_body.length(), "\r\n");
+        }
+        this->_s_response = this->_body;
     }
+    if (b < BUFFER_SIZE && this->_is_chunked)
+        this->_s_response.insert(this->_s_response.length(), "0\r\n\r\n");
 }
 
 void HTTPResponse::HandlePostMethod(DIR *dir) {
@@ -701,7 +726,7 @@ void HTTPResponse::HandleDeleteMethod(const std::string &file_path) {
         throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
     }
     // Return a response to the client
-    //this->setHeaders(NO_CONTENT_STATUS);
+    // this->setHeaders(NO_CONTENT_STATUS);
     if (!this->_is_header_done) {
         this->_s_header += "HTTP/1.1 ";
         this->_s_header += this->_status_codes[NO_CONTENT_STATUS] + "\r\n";
