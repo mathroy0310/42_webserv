@@ -52,6 +52,13 @@ void Client::setStatus(int status_code) {
     this->_status_code = status_code;
 }
 
+void Client::setSocketTimeout(int seconds) {
+    struct timeval tv;
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
+    setsockopt(this->_socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
+}
+
 void Client::disconnect(void) {
     close(this->_socket_fd);
     this->_socket_fd = -1;
@@ -93,6 +100,7 @@ void Client::read_socket(void) {
     int len = BUFFER_SIZE;
 
     this->_is_done_reading = false;
+    // this->setSocketTimeout(10);
     do {
         bzero(buffer, BUFFER_SIZE + 1);
 		Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());

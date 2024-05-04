@@ -459,8 +459,9 @@ std::string HTTPResponse::getBoundary() {
     std::string tmp = "boundary=";
     const std::string &req_con_type = this->_request->getValueByKey(REQ_CONTENT_TYPE);
     size_t index = req_con_type.find(tmp);
-    if (index != std::string::npos)
+    if (index != std::string::npos) {
         return ("--" + req_con_type.substr(index + tmp.length(), -1));
+    }
 	std::cout << FILE_LINE << std::endl;
     throw std::runtime_error(this->returnError(BAD_REQUEST_STATUS));
 }
@@ -602,7 +603,7 @@ void HTTPResponse::executeCGI(void) {
     if (status) {
         Logger::get().log(DEBUG, "exit with !0 status");
         if (access(this->_path.c_str(), F_OK) < 0)
-            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+            throw std::runtime_error(this->returnError(NO_CONTENT_STATUS));
         std::cerr << FILE_LINE;
         throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
     }
@@ -657,8 +658,8 @@ void HTTPResponse::executeCGI(void) {
         }
         this->_s_response = this->_body;
     }
-    if (b < BUFFER_SIZE && this->_is_chunked)
-        this->_s_response.insert(this->_s_response.length(), "0\r\n\r\n");
+    // if (b < BUFFER_SIZE && this->_is_chunked)
+    //     this->_s_response.insert(this->_s_response.length(), "0\r\n\r\n");
 }
 
 void HTTPResponse::HandlePostMethod(DIR *dir) {
@@ -670,6 +671,9 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
     std::string index = this->_directive_selector->getIndex();
     std::string upload_path = this->_directive_selector->getUploadPath();
     size_t max_content_lenght = this->_directive_selector->getMaxBodySize();
+
+    Logger::get().log(DEBUG, "requested_content_lenght: %lu", requested_content_lenght);
+    Logger::get().log(DEBUG, "max_content_lenght: %lu", max_content_lenght);
 
     if (requested_content_lenght > max_content_lenght) {
         Logger::get().log(ERROR, "Content too large. Config: %lu | Request: %lu", max_content_lenght,
@@ -736,8 +740,16 @@ void HTTPResponse::HandleDeleteMethod(const std::string &file_path) {
     std::vector<std::string> allowed_methods = this->_directive_selector->getAllowedMethods();
     // Check if the file exists or whether the server has the permissions required to delete it
     if (access(file_path.c_str(), F_OK) < 0) {
-        Logger::get().log(ERROR, "File not found: %s", file_path.c_str());
-        throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        if (errno == ENOENT) {
+            Logger::get().log(ERROR, "File not found: %s", file_path.c_str());
+            throw std::runtime_error(this->returnError(NOT_FOUND_STATUS));
+        } else if (errno == EACCES) {
+            Logger::get().log(ERROR, "Permission denied: %s", file_path.c_str());
+            throw std::runtime_error(this->returnError(FORBIDDEN_STATUS));
+        } else {
+            Logger::get().log(ERROR, "Error accessing file: %s", file_path.c_str());
+            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
+        }
     }
     // Delete the file
     if (remove(file_path.c_str()) != 0) {

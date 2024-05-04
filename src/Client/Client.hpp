@@ -16,6 +16,7 @@ class Client {
     void setRequest(HTTPRequest *request);
     void setResponse(HTTPResponse *response);
     void setStatus(int status_code);
+    void setSocketTimeout(int seconds);
     HTTPRequest *createNewRequest(void);
     HTTPRequest *getRequest(void) const;
     HTTPResponse *getResponse(void);

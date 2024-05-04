@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Handling Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding:80px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 10px 15px;
+            margin: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        p {
+            color: #666;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cookie Handling Test 🍪</h1>
+        <button onclick="setCookiePrompt('testCookie', 1)">Set Cookie</button>
+        <button onclick="getCookie('testCookie')">Show Cookie</button>
+        <button onclick="deleteCookieAndClearText('testCookie')">Delete Cookie</button>
+        <p id="cookieValue"></p>
+    </div>
+
+    <script>
+        function setCookiePrompt(name, days) {
+            var value = prompt("Please enter the value for the cookie:");
+            if (value !== null && value !== "") {
+                setCookie(name, value, days);
+            }
+        }
+
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days*24*60*60*1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+            alert("Cookie set: " + name + "=" + value);
+        }
+
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                if (c.indexOf(nameEQ) == 0) {
+                    document.getElementById('cookieValue').innerText = "Cookie Value: " + c.substring(nameEQ.length, c.length);
+                    return;
+                }
+            }
+            document.getElementById('cookieValue').innerText = "Cookie not found";
+        }
+
+        function deleteCookieAndClearText(name) {
+            document.cookie = name + '=; Max-Age=-99999999; path=/';
+            document.getElementById('cookieValue').innerText = "";  // Clear the displayed text
+            alert("Cookie deleted: " + name);
+        }
+    </script>
+</body>
+</html>

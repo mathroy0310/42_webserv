@@ -36,9 +36,9 @@ void SocketWrapper::bindSocket(void) {
     this->_addr.sin_port = htons(this->_listen_port);
     this->_addr.sin_addr.s_addr = this->_host.s_addr;
     int opt = 1;
-    if (setsockopt(this->_socket_fd, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(int)) == -1)
-    //if (setsockopt(this->_socket_fd, SOL_SOCKET, SO_REUSEADDR,&opt, sizeof(int)) == -1)
+    if (setsockopt(this->_socket_fd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(int)) == -1)
         throw std::runtime_error("Socket Option Failed `setsockopt()': " + std::string(strerror(errno)));
+    //if (setsockopt(this->_socket_fd, SOL_SOCKET, SO_REUSEADDR,&opt, sizeof(int)) == -1)
     if (bind(this->_socket_fd, (struct sockaddr *)&this->_addr, sizeof(_addr)) == -1)
         throw std::runtime_error("Socket Binding Failed `bind()': " + std::string(strerror(errno)));
     int flags = fcntl(this->_socket_fd, F_GETFL, 0);
