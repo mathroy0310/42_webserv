@@ -607,7 +607,7 @@ void HTTPResponse::executeCGI(void) {
         std::cerr << FILE_LINE;
         throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
     }
-    usleep(100000);
+    //usleep(100000);
 
     char buffer[BUFFER_SIZE + 1];
     bzero(buffer, BUFFER_SIZE + 1);
@@ -620,14 +620,9 @@ void HTTPResponse::executeCGI(void) {
     Logger::get().log(DEBUG, "fdIn: %d", cgi->getFdIn());
     int b = read(cgi->getFdIn(), buffer, BUFFER_SIZE);
     if (b == -1) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            // No data available yet, you may want to retry later
-            std::cerr << "No data available yet." << std::endl;
-        } else {
-            // Some other error occurred
-            std::cerr << "Error reading from file descriptor: " << strerror(errno) << std::endl;
-            throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
-        }
+        // Some other error occurred
+        std::cerr << "Error reading from file descriptor: " << strerror(errno) << std::endl;
+        throw std::runtime_error(this->returnError(INTERNAL_SERVER_ERROR_STATUS));
     }
     this->_body.clear();
     this->_body.append(buffer, b);

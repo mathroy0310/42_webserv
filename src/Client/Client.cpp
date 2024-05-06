@@ -107,19 +107,6 @@ void Client::read_socket(void) {
         len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
         if (len > 0) {
             data.insert(data.end(), buffer, buffer + len);
-        } else if (len == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            sleep(1);
-            continue;
-        } else if (len == -1) {
-			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-				len = BUFFER_SIZE;
-				sleep(1);
-				continue;
-			}
-            Logger::get().log(ERROR, "Errno: %s", strerror(errno));
-            this->disconnect();
-            std::cout << FILE_LINE << std::endl;
-            throw std::runtime_error("Client disconnected");
         } else if (len == 0) {
             std::cout << FILE_LINE << std::endl;
             Logger::get().log(INFO, "Whole data received");

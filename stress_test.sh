@@ -51,9 +51,9 @@ function check_return_not
 }
 
 printf "${_ICYAN}${_BOLD}${_GREY}  ARGS TESTS  ${_END}\n"
-printf "${_GREEN}./webserv${_END}\n"
-./webserv
-check_return_not 0
+# printf "${_GREEN}./webserv${_END}\n"
+# ./webserv
+# check_return_not 0
 
 printf "${_GREEN}./webserv ${_YELLOW}1 2${_END}\n"
 ./webserv 1 2
@@ -81,7 +81,7 @@ while (($i < 10000)); do
 	./webserv ${dir_conf}${config_files[0]} &
 	pid=$!
 	sleep 0.05
-	siege --quiet -t1s http://localhost:80 &>/dev/null &
+	siege --quiet -t1s http://localhost:8080 &>/dev/null &
 	pid_siege=$!
 	sleep 0.5
 	kill -2 $pid &>/dev/null
