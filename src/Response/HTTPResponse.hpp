@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 19:51:08 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/05/03 00:19:42 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/09 16:39:39 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class HTTPResponse {
 
   private:
     void executeCGI(void);
+	void checkCGIHeader(void);
 
     void initStatusCodeMap(void);
     void setContentType(const std::string &extension);
@@ -63,7 +64,6 @@ class HTTPResponse {
     std::string fileToString(const std::string &file_path, int error_status);
     std::string matching(void);
     void defaultPage(void);
-    void locationExists(void);
     void methodNotAllowed(void);
     void locationRedirection(void);
     void HandlePostMethod(DIR *dir);

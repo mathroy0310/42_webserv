@@ -32,7 +32,7 @@ const std::string getExtension(const std::string &path) {
 static bool isCgi(const std::string &path, std::map<std::string, std::string> cgi_map) {
     std::string extension = getExtension(path);
 
-    if (cgi_map.find(extension) != cgi_map.end())
+    if (cgi_map.find( extension) != cgi_map.end())
         return (true);
     return (false);
 }
@@ -532,6 +532,23 @@ bool HTTPResponse::uploadFile(std::string &upload_path) {
     return false;
 }
 
+
+void HTTPResponse::checkCGIHeader(void)
+{
+	size_t http_status = this->_body.find("HTTP/1.1");
+	if (http_status == std::string::npos)
+		this->_s_header.insert(0, "HTTP/1.1 200 OK\r\n");
+	
+
+	if (this->_s_header.find("Content-Lenght") == std::string::npos) {
+		this->_s_header.insert(this->_s_header.length() - 4, "\r\nTransfer-Encoding: chunked");
+		this->_is_chunked = true;
+		this->_body.insert(0, itohex(this->_body.length()) + "\r\n");
+		this->_body.insert(this->_body.length(), "\r\n");
+    }
+	
+}
+
 #include <fcntl.h>
 #include <sys/wait.h>
 
@@ -629,20 +646,14 @@ void HTTPResponse::executeCGI(void) {
     Logger::get().log(DEBUG, "CGI response: %s", this->_body.c_str());
     Logger::get().log(DEBUG, "this->_is_header_done = %d", this->_is_header_done);
     if (!this->_is_header_done) {
-        Logger::get().log(DEBUG, "this->_s_header: %s", this->_s_header.c_str());
         size_t find_end_of_head = this->_body.find("\r\n\r\n");
         if (find_end_of_head != this->_body.npos) {
             this->_s_header.insert(0, this->_body.substr(0, find_end_of_head + 4));
             this->_body = this->_body.substr(find_end_of_head + 4, -1);
         }
+        Logger::get().log(DEBUG, "this->_s_header: %s", this->_s_header.c_str());
         Logger::get().log(DEBUG, "this->_body: %s", this->_body.c_str());
-        this->_s_header += "HTTP/1.1 200 OK\r\n";
-        if (this->_s_header.find("Content-Lenght") == std::string::npos) {
-            this->_s_header.insert(this->_s_header.length() - 4, "\r\nTransfer-Encoding: chunked");
-            this->_is_chunked = true;
-            this->_body.insert(0, itohex(this->_body.length()) + "\r\n");
-            this->_body.insert(this->_body.length(), "\r\n");
-        }
+		checkCGIHeader();
         this->_is_header_done = true;
         this->_s_response = this->_s_header + this->_body;
         Logger::get().log(DEBUG, "this->_s_response: %s", this->_s_response.c_str());
@@ -676,7 +687,24 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
     }
     if (isCgi(this->_path, this->_directive_selector->getCgi())) {
+		std::cout << FILE_LINE << std::endl;
         this->executeCGI();
+		if (!this->uploadFile(upload_path)) {
+
+            std::string body = UPLOADED_DEFAULT_PAGE;
+            this->_content_length = body.length();
+            this->setContentType(".html");
+            this->setHeaders(OK_STATUS);
+            this->_s_response = this->_s_header + body;
+            this->_is_uploaded = true;
+            return;
+        }
+        // std::string body = UPLOADED_FAILED_PAGE;
+        // this->_content_length = body.length();
+        // this->setContentType(".html");
+        // this->setHeaders(OK_STATUS);
+        // this->_s_response = this->_s_header + body;
+        // this->_is_uploaded = true;
         this->_is_uploaded = true;
         return;
     }

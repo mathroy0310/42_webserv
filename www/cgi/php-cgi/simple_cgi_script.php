@@ -5,7 +5,7 @@ parse_str($_SERVER['QUERY_STRING'], $query);
 $name = isset($query['name']) ? urldecode($query['name']) : '';
 
 // Output HTML response with the formatted name
-echo "Content-type: text/html\n\n";
+echo "Content-type: text/html\r\n\r\n";
 ?>
 <!DOCTYPE html>
 <html>

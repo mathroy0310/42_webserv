@@ -8,7 +8,7 @@ import os  # Import the os module to access environment variables
 def main():
     form = cgi.FieldStorage()  # Get data from the form
     name = form.getvalue('name', 'World')  # Get 'name' parameter
-    print(f"""Content-type: text/html\r\n
+    print(f"""Content-type: text/html\r\n\r\n
     <!DOCTYPE html>
     <html>
     <head>
