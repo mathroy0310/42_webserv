@@ -38,7 +38,15 @@ void Server::stop(void) {
         for (; client != this->_clients.end(); client++) {
             client->disconnect();
         }
-        delete _multiplexer;
+        this->_listening_sockets.clear();
+        this->_clients.clear();
+        if (_multiplexer) {
+            delete _multiplexer;
+            _multiplexer = nullptr;
+        }
+        _config.servers.clear();
+        // Free ressources _config
+
     }
 }
 

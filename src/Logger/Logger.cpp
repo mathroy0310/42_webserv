@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/04/26 00:30:38 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/11 23:34:24 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@ Logger::Logger(std::string log_file, e_logState state, e_logType type, e_logLeve
 }
 
 Logger::~Logger(void) {
-    this->_log_file.close();
+    if (this->_log_file.is_open())
+        this->_log_file.close();
     return;
 }
 
@@ -26,6 +27,14 @@ Logger& Logger::get(void)
 {
 	static Logger logger("webserv.log");
 	return (logger);
+}
+
+void Logger::destroy(void) {
+    Logger& logger = get();
+    if (logger._log_file.is_open()) {
+        logger._log_file.close();
+    }
+    // No need to explicitly delete logger since it's managed by the runtime, but closing file stream explicitly.
 }
 
 void Logger::log(e_logLevel level, const char *format, ...) {

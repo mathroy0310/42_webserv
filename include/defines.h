@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <unistd.h>  // for close
 #include <vector>
+#include <csignal>
 
 /**********/
 /* Logger */

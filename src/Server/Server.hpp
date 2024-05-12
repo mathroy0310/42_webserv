@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/04/05 19:43:43 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/12 00:55:52 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class Server {
 
   private:
     // Attributes
-    const t_config _config;
+    t_config _config;
     Multiplexer *_multiplexer;
     std::map<int, SocketWrapper> _listening_sockets;
     std::vector<Client> _clients;
