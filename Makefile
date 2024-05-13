@@ -6,7 +6,7 @@
 #    By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/15 14:01:52 by maroy             #+#    #+#              #
-#    Updated: 2024/05/11 22:40:30 by rmarceau         ###   ########.fr        #
+#    Updated: 2024/05/13 15:27:28 by rmarceau         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,8 +39,11 @@ fclean: clean
 	@rm -rf $(NAME)
 	@echo	"$(RED)All deleted!$(DEFAULT)"
 
+valgrind: all
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes ./$(NAME)
+
 leaks: all
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
+	leaks --atExit -- ./$(NAME)
 
 re: fclean all
 

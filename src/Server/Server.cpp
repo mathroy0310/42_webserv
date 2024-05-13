@@ -1,24 +1,64 @@
 #include "Server.hpp"
 
 // Constructors and destructors
+Server* globalServerInstance = nullptr;
 
-Server::Server(const t_config &config) : _config(config), _multiplexer(new Multiplexer()), _running(false) {}
+void handleSignal(int signal) {
+    if (signal == SIGINT) {
+        Logger::destroy();
+        if (globalServerInstance) {
+            globalServerInstance->stop();
+        }
+    }
+}
+
+void setupSignalHandlers() {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+
+    // Handle SIGINT
+    sa.sa_handler = handleSignal;
+    sigaction(SIGINT, &sa, NULL);
+
+    // Ignore SIGPIPE
+    sa.sa_handler = SIG_IGN; // Set to ignore the signal
+    sigaction(SIGPIPE, &sa, NULL);
+}
+
+Server::Server(const t_config &config) : _config(config), _multiplexer(new Multiplexer()), _running(false) {
+    globalServerInstance = this;
+    setupSignalHandlers();
+}
 
 Server::~Server(void) {
-    this->stop();
+    if (this->_running)
+        this->stop();
+    globalServerInstance = nullptr;
 }
 
 void Server::run(void) {
     Logger::get().log(INFO, "Server starting...");
+
     try {
         this->_running = true;
         this->setupServerConnections();
         Logger::get().log(INFO, "Server connections setting up...");
-        while (this->_running)
-            if (this->_multiplexer->wait() > 0) {
+        while (this->_running) {
+            int n = this->_multiplexer->wait();
+            if (n < 0) {
+                if (errno == EINTR) {
+                    Logger::get().log(INFO, "Server interrupted");
+                    continue;
+                } else {
+                    Logger::get().log(ERROR, "Error in multiplexer");
+                    this->stop();
+                }
+            } 
+            else if (n > 0) {
                 this->acceptConnections();
                 this->handleRequests();
             }
+        }
     } catch (const std::exception &e) {
         Logger::get().log(ERROR, "Server error: %s", e.what());
         this->stop();
