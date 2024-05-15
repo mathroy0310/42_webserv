@@ -44,17 +44,7 @@ void Server::run(void) {
         this->setupServerConnections();
         Logger::get().log(INFO, "Server connections setting up...");
         while (this->_running) {
-            int n = this->_multiplexer->wait();
-            if (n < 0) {
-                if (errno == EINTR) {
-                    Logger::get().log(INFO, "Server interrupted");
-                    continue;
-                } else {
-                    Logger::get().log(ERROR, "Error in multiplexer");
-                    this->stop();
-                }
-            } 
-            else if (n > 0) {
+            if (this->_multiplexer->wait() > 0) {
                 this->acceptConnections();
                 this->handleRequests();
             }
@@ -66,28 +56,27 @@ void Server::run(void) {
 }
 
 void Server::stop(void) {
-    if (this->_running) {
-        this->_running = false;
-        Logger::get().log(INFO, "Server stopping...");
+    if (!this->_running)
+        return;
+    this->_running = false;
+    Logger::get().log(INFO, "Server stopping...");
 
-        std::map<int, SocketWrapper>::iterator server = this->_listening_sockets.begin();
-        for (; server != this->_listening_sockets.end(); server++) {
-            close(server->first);
-        }
-        std::vector<Client>::iterator client = this->_clients.begin();
-        for (; client != this->_clients.end(); client++) {
-            client->disconnect();
-        }
-        this->_listening_sockets.clear();
-        this->_clients.clear();
-        if (_multiplexer) {
-            delete _multiplexer;
-            _multiplexer = nullptr;
-        }
-        _config.servers.clear();
-        // Free ressources _config
-
+    std::map<int, SocketWrapper>::iterator server = this->_listening_sockets.begin();
+    for (; server != this->_listening_sockets.end(); server++) {
+        close(server->first);
     }
+    this->_listening_sockets.clear();
+    std::vector<Client>::iterator client = this->_clients.begin();
+    for (; client != this->_clients.end(); client++) {
+        client->disconnect();
+    }
+    this->_clients.clear();
+    if (_multiplexer) {
+        delete _multiplexer;
+        _multiplexer = nullptr;
+    }
+    // Clean up config
+    _config.servers.clear();
 }
 
 void Server::setupServerConnections(void) {
