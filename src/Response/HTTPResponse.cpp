@@ -413,7 +413,7 @@ void HTTPResponse::methodNotAllowed(void) {
 
     if (method != "GET" && method != "POST" && method != "DELETE") {
         Logger::get().log(ERROR, "Method not allowed: %s", method.c_str());
-        throw std::runtime_error(this->returnError(NOT_IMPLEMENTED_STATUS));
+        throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
     } else if (isMethodAllowed(method, this->_directive_selector->getAllowedMethods()) == false)
         throw std::runtime_error(this->returnError(METHOD_NOT_ALLOWED_STATUS));
 }
@@ -687,7 +687,7 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         throw std::runtime_error(this->returnError(CONTENT_TOO_LARGE_STATUS));
     }
     if (isCgi(this->_path, this->_directive_selector->getCgi())) {
-		std::cout << FILE_LINE << std::endl;
+		//std::cout << FILE_LINE << std::endl;
         this->executeCGI();
 		if (!this->uploadFile(upload_path)) {
 

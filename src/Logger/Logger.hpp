@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:55 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/11 23:31:10 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/05/15 16:45:36 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ class Logger {
   static void destroy(void);
 
   private:
-    Logger(std::string log_file, e_logState state = ENABLED, e_logType type = BOTH, e_logLevel level = DEBUG);
+    Logger(std::string log_file, e_logState state = ENABLED, e_logType type = BOTH, e_logLevel level = INFO);
     const std::string _log_filename;
     const e_logState _log_state;
 	const e_logLevel _log_level;

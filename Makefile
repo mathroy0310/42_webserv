@@ -3,16 +3,16 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+         #
+#    By: maroy <maroy@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/15 14:01:52 by maroy             #+#    #+#              #
-#    Updated: 2024/05/13 15:27:28 by rmarceau         ###   ########.fr        #
+#    Updated: 2024/05/15 18:26:32 by maroy            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = webserv
 CCPP = c++
-CPPFLAGS = -Wall -Werror -Wextra -std=c++11 -g -I ./include -I ./src #-fsanitize=address
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98 -g -I ./include -I ./src #-fsanitize=address
 
 SRC_DIR = src
 OBJ_DIR = obj
