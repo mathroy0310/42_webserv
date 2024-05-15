@@ -32,7 +32,7 @@ HTTPRequest *Client::getRequest(void) const {
 
 HTTPResponse *Client::getResponse(void) {
     if (!this->_response) {
-        if (!this->_status_code)
+        if (!this->_status_code) 
             this->_response = new HTTPResponse(this->_request, this->_server);
         else
             this->_response = new HTTPResponse(this->_status_code, this->_server);
@@ -62,6 +62,14 @@ void Client::setSocketTimeout(int seconds) {
 void Client::disconnect(void) {
     close(this->_socket_fd);
     this->_socket_fd = -1;
+    if (this->_request) {
+        delete this->_request;
+        this->_request = NULL;
+    }
+    if (this->_response) {
+        delete this->_response;
+        this->_response = NULL;
+    }
 }
 
 static std::string decode_chunked(const std::string &chunked_string){
@@ -158,11 +166,11 @@ bool Client::write_socket(void) {
         Logger::get().log(INFO, "Response sent: %s", buffer_reponse.c_str());
         int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
         if (len < BUFFER_SIZE) {
-            // request->clear();
-            // delete request;
-            // this->setRequest(NULL);
-            // delete response;
-            // this->setResponse(NULL);
+            request->clear();
+            delete request;
+            this->setRequest(NULL);
+            delete response;
+            this->setResponse(NULL);
             if (len == -1)
                 return (false);
             return (keep_alive);
