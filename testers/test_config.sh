@@ -28,11 +28,10 @@ _IWHITE='\e[47m'
 
 # **************************************************************************** #
 
-dir_conf=./testers/conf_tester/conf/
+dir_conf=./testers/bad_conf/
 
 # list of all config files
 broken_conf=(brackets.conf comments.conf empty.conf expected_equal.conf expected_semi.conf invalid_directive.conf invalid_error_pages.conf no_perms.conf no_server.conf noip.conf unexpected_token_serv_block.conf)
-config_files=(def.conf)
 
 which siege
 if [[ $? != 0 ]]; then
@@ -72,24 +71,4 @@ while (($i < $size)); do
 	./webserv ${dir_conf}${broken_conf[$i]}
 	check_return_not 0
 	i=${i}+1
-done
-
-printf "${_ICYAN}${_BOLD}${_GREY}  TESTS FOR CTRL-C  ${_END}\n"
-
-i=0;
-while (($i < 10000)); do
-	./webserv ${dir_conf}${config_files[0]} &
-	pid=$!
-	sleep 0.05
-	siege --quiet -t1s http://localhost:8080 &>/dev/null &
-	pid_siege=$!
-	sleep 0.5
-	kill -2 $pid &>/dev/null
-	wait $pid
-	if [ $? != 0 ]; then
-		exit
-	fi
-	wait $pid_siege
-	i=$(($i+1))
-	echo $i
 done

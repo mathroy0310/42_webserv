@@ -694,17 +694,11 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
             std::string body = UPLOADED_DEFAULT_PAGE;
             this->_content_length = body.length();
             this->setContentType(".html");
-            this->setHeaders(OK_STATUS);
+            this->setHeaders(CREATED_STATUS);
             this->_s_response = this->_s_header + body;
             this->_is_uploaded = true;
             return;
         }
-        // std::string body = UPLOADED_FAILED_PAGE;
-        // this->_content_length = body.length();
-        // this->setContentType(".html");
-        // this->setHeaders(OK_STATUS);
-        // this->_s_response = this->_s_header + body;
-        // this->_is_uploaded = true;
         this->_is_uploaded = true;
         return;
     }
@@ -724,7 +718,7 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
             std::string body = UPLOADED_DEFAULT_PAGE;
             this->_content_length = body.length();
             this->setContentType(".html");
-            this->setHeaders(OK_STATUS);
+            this->setHeaders(CREATED_STATUS);
             this->_s_response = this->_s_header + body;
             this->_is_uploaded = true;
             return;
@@ -732,7 +726,7 @@ void HTTPResponse::HandlePostMethod(DIR *dir) {
         std::string body = UPLOADED_FAILED_PAGE;
         this->_content_length = body.length();
         this->setContentType(".html");
-        this->setHeaders(OK_STATUS);
+        this->setHeaders(BAD_REQUEST_STATUS);
         this->_s_response = this->_s_header + body;
         this->_is_uploaded = true;
         // this->_is_uploaded = false;

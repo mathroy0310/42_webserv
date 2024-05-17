@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
 // Constructors and destructors
-Server* globalServerInstance = nullptr;
+Server *globalServerInstance = nullptr;
 
 void handleSignal(int signal) {
     if (signal == SIGINT) {
@@ -9,7 +9,17 @@ void handleSignal(int signal) {
         if (globalServerInstance) {
             globalServerInstance->stop();
         }
+		exit(EXIT_FAILURE);
     }
+	if (signal == SIGSEGV) {
+		Logger::get().log(ERROR, "Segmentation fault");
+        Logger::destroy();
+        if (globalServerInstance) {
+            globalServerInstance->stop();
+        }
+		exit(EXIT_FAILURE);
+	}
+	
 }
 
 void setupSignalHandlers() {
@@ -20,8 +30,11 @@ void setupSignalHandlers() {
     sa.sa_handler = handleSignal;
     sigaction(SIGINT, &sa, NULL);
 
+	sigaction(SIGSEGV, &sa, NULL);
+
+
     // Ignore SIGPIPE
-    sa.sa_handler = SIG_IGN; // Set to ignore the signal
+    sa.sa_handler = SIG_IGN;  // Set to ignore the signal
     sigaction(SIGPIPE, &sa, NULL);
 }
 
@@ -114,7 +127,7 @@ void Server::acceptConnections() {
 void Server::handleRequests(void) {
     std::vector<Client>::iterator client = this->_clients.begin();
     while (client != this->_clients.end()) {
-		std::system("sleep 0.025");
+        std::system("sleep 0.025");
         if (this->_multiplexer->canRead(client->getSocketFd()) && client->getIsDoneReading() == false) {
             try {
                 client->read_socket();

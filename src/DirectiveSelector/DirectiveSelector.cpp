@@ -125,7 +125,6 @@ unsigned long long DirectiveSelector::getMaxBodySize(void) const {
 	return (this->_location.max_body_size);
 }
 
-///--...--...---.--.--.--...--..-----....--..-.--..---.///
 const t_location &DirectiveSelector::getLocation(void) const {
     if (this->_location_index < 0)
         throw std::out_of_range("getLocation()");
