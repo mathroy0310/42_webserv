@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 20:46:27 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/28 13:07:53 by maroy            ###   ########.fr       */
+/*   Updated: 2024/04/27 17:42:38 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ public:
     // Methods
     void addFd(int fd, short events);
     void removeFd(int fd);
-    int wait(int timeout = -1);
+    int wait(int timeout = 2500);
     bool canRead(int fd) const;
     bool canWrite(int fd) const;
 private:

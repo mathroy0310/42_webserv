@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_servers.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:43:13 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 16:07:13 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/05/01 19:05:17 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,16 @@ void parse_server_directive(std::string &key, std::string &value, t_server &serv
         server.is_autoindex = set_autoindex(value, key);
     else if (key == "listen")
         server.port = set_port_and_ip_address(value, key, server.ip_address);
-    else if (key == "max_client_size")
-        server.max_client_size = set_max_client_size(value, key);
     else if (key == "error_pages")
         set_error_pages(value, key, server.error_pages);
+    else if (key == "allowed_methods")
+        server.allowed_methods = set_allowed_methods(value, key);
+	else if (key == "max_body_size")
+        server.max_body_size = set_max_body_size(value, key);
+	else if (key == "upload_path")
+		server.upload_path = set_upload_path(value, key);
+	else if (key == "cgi")
+		set_cgi_ext(value, key, server.cgi);
     else {
         std::cerr << ERR_MSG_INVALID_DIRECTIVE(key) << FILE_LINE;
         exit(EXIT_FAILURE);
@@ -60,12 +66,14 @@ void parse_server_line(std::string line, t_server &server) {
 
 static void init(t_server &server) {
     server.max_body_size = 0;
-	server.max_client_size = MAX_CLIENTS;
+    server.max_client_size = MAX_CLIENTS;
     server.is_autoindex = false;
     server.port = -1;
     server.server_name = "";
     server.root = "";
-    server.index = "index.html";
+    server.index = "";
+    server.upload_path = "";
+    server.redirect_code = -1;
 }
 
 t_server parse_server_block(std::string line) {

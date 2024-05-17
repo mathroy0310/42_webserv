@@ -6,18 +6,18 @@
 /*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:48:45 by rmarceau          #+#    #+#             */
-/*   Updated: 2024/03/29 14:32:49 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/05/12 00:55:52 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "parsing.hpp"
-#include "defines.h"
+#include "Client/Client.hpp"
 #include "Socket/Multiplexer.hpp"
 #include "Socket/SocketWrapper.hpp"
-#include "Client/Client.hpp"
+#include "defines.h"
+#include "parsing.hpp"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -38,7 +38,7 @@ class Server {
 
   private:
     // Attributes
-    const t_config _config;
+    t_config _config;
     Multiplexer *_multiplexer;
     std::map<int, SocketWrapper> _listening_sockets;
     std::vector<Client> _clients;
@@ -49,6 +49,9 @@ class Server {
     void setupServerConnections(void);
     void acceptConnections(void);
     void handleRequests(void);
+
+    void read_socket(Client &client);
+    bool write_socket(Client &client);
 };
 
 #endif  // SERVER_HPP

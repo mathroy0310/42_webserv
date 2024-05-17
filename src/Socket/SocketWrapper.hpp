@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 17:29:54 by maroy             #+#    #+#             */
-/*   Updated: 2024/03/28 13:07:49 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/01 19:01:12 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 class SocketWrapper {
   public:
     // Constructors and destructors
-    SocketWrapper(const std::string host, const int port, const int max_clients);
+    SocketWrapper(const std::string host, const int port);
     ~SocketWrapper(void);
 
     // Methods
@@ -48,7 +48,6 @@ class SocketWrapper {
     in_addr _host;
     struct sockaddr_in _addr;
     socklen_t _addr_len;
-    size_t _max_clients;
     std::vector<int> _clients_fd;
 
     // Methods

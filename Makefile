@@ -6,13 +6,13 @@
 #    By: maroy <maroy@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/15 14:01:52 by maroy             #+#    #+#              #
-#    Updated: 2024/04/05 02:04:49 by maroy            ###   ########.fr        #
+#    Updated: 2024/05/15 18:26:32 by maroy            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = webserv
 CCPP = c++
-CPPFLAGS = -Wall -Werror -Wextra -std=c++11 -g -fsanitize=address  -I ./include -I ./src
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98 -g -I ./include -I ./src #-fsanitize=address
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -39,9 +39,15 @@ fclean: clean
 	@rm -rf $(NAME)
 	@echo	"$(RED)All deleted!$(DEFAULT)"
 
+valgrind: all
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes ./$(NAME)
+
+leaks: all
+	leaks --atExit -- ./$(NAME)
+
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean leaks re
 
 RED = \033[1;31m
 GREEN = \033[1;32m

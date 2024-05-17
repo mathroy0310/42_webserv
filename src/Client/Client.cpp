@@ -1,229 +1,177 @@
 #include "Client.hpp"
 
-Client::Client(int socket_fd, t_server server) : _socket_fd(socket_fd), _server(server) ,_is_writing(false) {}
+Client::Client(int socket_fd, t_server server) {
+    this->_socket_fd = socket_fd;
+    this->_server = server;
+    this->_status_code = 0;
+    this->_request = NULL;
+    this->_is_done_reading = false;
+    this->_response = NULL;
+}
 
 Client::~Client(void) {}
-
-void Client::disconnect(void) {
-    close(this->_socket_fd);
-	this->_socket_fd = -1;
-}
-
-void Client::readRequest(void) {
-    char buffer[BUFFER_SIZE];
-
-    ssize_t bytes_read = recv(this->_socket_fd, buffer, BUFFER_SIZE, 0);
-    if (bytes_read == -1) {
-        throw std::runtime_error("Failed to read from socket");
-    }
-	if (bytes_read == 0) {
-		this->disconnect();
-	}
-    std::string buffer_str(buffer, bytes_read);
-    this->_request = new HTTPRequest();
-    this->_request->appendHeader(buffer, bytes_read);
-
-	Logger::get().log(DEBUG, "Received %ld bytes", bytes_read);
-	Logger::get().log(DEBUG, "Request URI: %s", this->_request->getURI().c_str());
-	Logger::get().log(DEBUG, "Request Method: %s", this->_request->getMethod().c_str());
-	//Logger::get().log(DEBUG, "Request Body: %s", this->_request->getBody().c_str());
-
-    if (buffer_str.find("\r\n\r\n") != std::string::npos) {
-        this->_is_writing = true;
-        processRequest();
-    }
-}
-
-void Client::writeResponse(void) {
-    if (!this->_is_writing) {
-        return;
-    }
-	std::string response_buffer = this->_response->serialize();
-    ssize_t bytes_sent = send(this->_socket_fd, response_buffer.c_str(), response_buffer.size(), 0);
-    if (bytes_sent == -1) {
-        throw std::runtime_error("Failed to write to socket");
-    }
-    Logger::get().log(DEBUG, "Sent %ld bytes", bytes_sent);
-    //std::cout << response_buffer << std::endl;
-    this->_is_writing = false;
-}
-
-bool Client::hasPendingOperations(void) const {
-    return (this->_is_writing);
-}
 
 int Client::getSocketFd(void) const {
     return (this->_socket_fd);
 }
 
-bool isDirectory(const std::string &path) {
-    struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) {
-        return false;
+HTTPRequest *Client::createNewRequest(void) {
+    return (new HTTPRequest());
+}
+
+HTTPRequest *Client::getRequest(void) const {
+    return (this->_request);
+}
+
+HTTPResponse *Client::getResponse(void) {
+    if (!this->_response) {
+        if (!this->_status_code)
+            this->_response = new HTTPResponse(this->_request, this->_server);
+        else
+            this->_response = new HTTPResponse(this->_status_code, this->_server);
     }
-    return S_ISDIR(statbuf.st_mode);
+    return (this->_response);
 }
 
-std::string Client::getFilePath(void) {
-
-	static std::string root = this->_server.root;
-	std::string uri = this->_request->getURI();
-    std::vector<t_location>::iterator it = this->_server.locations.begin();
-    // if (uri == "/") {
-    //     if (this->_server.index != "")
-    //         uri = this->_server.index;
-    //     return (root + uri);
-    // }
-
-	std::cout << "root: " << root << std::endl;
-	for (; it != this->_server.locations.end(); it++)
-	{
-        std::cout << "it->path: " << it->path << std::endl;
-		std::cout << "uri: " << uri << std::endl;
-
-		if (uri == it->path)
-		{
-			std::cout << "found path!!" << std::endl;
-			std::cout << "it->root: " << it->root << std::endl;
-			std::cout << "it->index: " << it->index << std::endl;
-			root = it->root;
-			uri = it->index;
-			break;
-		}
-	}
-	return (root + "/" + uri);
-
-    // std::string root = this->_server.root;
-    // std::string uri = this->_request->getURI();
-    
-    // Logger::get().log(DEBUG, "URI: %s", uri.c_str());
-    // Logger::get().log(DEBUG, "Root: %s", root.c_str());
-    // return (root + uri);
+void Client::setRequest(HTTPRequest *request) {
+    this->_request = request;
 }
 
-void Client::serveFile(const std::string &file_path, std::map<std::string, std::string> &headers) {
-	if (isDirectory(file_path))
-	{
-		Logger::get().log(DEBUG, "is a directory");
-		std::string body = "<html><body><ul>";
-		DIR *dir;
-		struct dirent *ent;
+void Client::setResponse(HTTPResponse *response) {
+    this->_response = response;
+}
 
-        std::string file_without_root = file_path.substr(this->_server.root.size());
+void Client::setStatus(int status_code) {
+    this->_status_code = status_code;
+}
 
-		if ((dir = opendir(file_path.c_str())) != NULL) {
-			while ((ent = readdir(dir)) != NULL) {
-				if (ent->d_name[0] == '.')
-					continue;
-				body += "<li><a href=\"";
-				body += file_without_root + "/" + ent->d_name;
-				body += "\">";
-				body += ent->d_name;
-				body += "</a></li>";
-			}
-			closedir(dir);
-		} else {
-			perror("could not open directory");
-		}
+void Client::setSocketTimeout(int seconds) {
+    struct timeval tv;
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
+    setsockopt(this->_socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
+}
 
-		body += "</ul></body></html>";
-		this->_response->setBody(body);
-        this->_response->setStatusCode(OK_STATUS);
-        this->_response->setStatusMessage("OK");
-		return;
-	}
-    std::ifstream fileStream(file_path, std::ios::binary);
-    if (fileStream.is_open()) {
-        std::string fileContent((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
-        this->_response->setBody(fileContent);
-        this->_response->setStatusCode(OK_STATUS);
-        this->_response->setStatusMessage("OK");
-    } else {
-        headers["Content-Type"] = "text/html";
-        this->_response->setStatusCode(NOT_FOUND_STATUS);
-        this->_response->setStatusMessage("Not Found");
-		if (this->_server.error_pages.find(404) == this->_server.error_pages.end()) {
-            std::cout << "404 not found" << std::endl;
-	        this->_response->setBody(ERR_PAGE(NOT_FOUND_STATUS, "Not Found"));
+void Client::disconnect(void) {
+    close(this->_socket_fd);
+    this->_socket_fd = -1;
+    if (this->_request) {
+        delete this->_request;
+        this->_request = NULL;
+    }
+    if (this->_response) {
+        delete this->_response;
+        this->_response = NULL;
+    }
+}
+
+static std::string decode_chunked(const std::string &chunked_string) {
+    std::string decoded_string;
+    std::istringstream iss(chunked_string);
+
+    while (true) {
+        std::string chunk_size_str;
+        std::getline(iss, chunk_size_str, '\r');
+        iss.ignore();  // ignore '\n'
+
+        std::istringstream size_stream(chunk_size_str);
+        size_stream >> std::hex >> std::ws;
+        size_t chunk_size;
+        size_stream >> chunk_size;
+
+        if (chunk_size == 0)
+            break;
+
+        std::string chunk_data(chunk_size, '\0');
+        iss.read(&chunk_data[0], chunk_size);
+
+        iss.ignore(2);  // ignore '\r\n'
+        Logger::get().log(DEBUG, "Chunk data: %s", chunk_data.c_str());
+        Logger::get().log(DEBUG, "Chunk size: %d", chunk_size);
+        decoded_string += chunk_data;
+    }
+    return decoded_string;
+}
+
+void Client::read_socket(void) {
+    if (!this->getRequest())
+        this->setRequest(this->createNewRequest());
+
+    std::vector<char> data;
+    char buffer[BUFFER_SIZE + 1];
+    int len = BUFFER_SIZE;
+
+    this->_is_done_reading = false;
+    this->setSocketTimeout(10);
+    do {
+        memset(buffer, 0, BUFFER_SIZE + 1);
+        Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());
+        len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
+        if (len > 0) {
+            Logger::get().log(INFO, "Read %d bytes", len);
+            data.insert(data.end(), buffer, buffer + len);
+        } else if (len == -1) {
+            Logger::get().log(INFO, "Timeout reached or other error");
+            continue;
+        } else if (len == 0) {
+            Logger::get().log(INFO, "Whole data received");
+            std::cout << FILE_LINE << std::endl;
+            this->disconnect();
+            return;
+            // throw std::runtime_error("Client disconnected");
+        } else if (len < BUFFER_SIZE) {
+            Logger::get().log(INFO, "Received less than BUFFER_SIZE");
+            continue;
         }
-		else
-		{
-			std::string error_page = this->_server.root + "/" + this->_server.error_pages[404];
-			std::cout << "error_page: " << error_page << std::endl;
-			fileStream.open(error_page, std::ios::binary);
-			if (fileStream.is_open())
-			{
-				std::string fileContent((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
-				this->_response->setBody(fileContent);
-			}
-			else
-				this->_response->setBody(ERR_PAGE(NOT_FOUND_STATUS, "Not Found"));
-		}
-    }
-}
+    } while (len <= BUFFER_SIZE && len > 0);
+    this->_is_done_reading = true;
+    std::string totalData(data.begin(), data.end());
 
-void Client::processRequest(void) {
-    this->_response = new HTTPResponse();
-
-    std::map<std::string, std::string> headers;
-    headers["Access-Control-Allow-Origin"] = "*";
-    headers["Cache-Control"] = "no-cache";
-    headers["Content-Language"] = "en-US";
-    headers["Connection"] = "close";
-    headers["Server"] = this->_server.server_name;
-    headers["Location"] = this->_request->getURI();
-    headers["Referrer-Policy"] = "no-referrer";
-
-    if (this->_request->getMethod() == "GET") {
-        std::string file_path = this->getFilePath();
-        headers["Content-Type"] = this->getMimeType(file_path);
-        this->serveFile(file_path, headers);
-    } else if (this->_request->getMethod() == "POST") {
-        this->_response->setStatusCode(NOT_IMPLEMENTED_STATUS);
-        this->_response->setStatusMessage("Not Implemented");
-        this->_response->setBody(ERR_PAGE(NOT_IMPLEMENTED_STATUS, "Not Implemented"));
-    } else if (this->_request->getMethod() == "DELETE") {
-        this->_response->setStatusCode(NOT_IMPLEMENTED_STATUS);
-        this->_response->setStatusMessage("Not Implemented");
-        this->_response->setBody(ERR_PAGE(NOT_IMPLEMENTED_STATUS, "Not Implemented"));
+    Logger::get().log(INFO, "Data received: \n\n%s", totalData.c_str());
+    Logger::get().log(DEBUG, "Data received: %d", totalData.size());
+    if (!this->getRequest()->getHeaderEnd()) {
+        try {
+            this->getRequest()->appendHeader(totalData.c_str(), totalData.size());
+        } catch (int status) {
+            std::cout << FILE_LINE << std::endl;
+            this->setStatus(status);
+        }
     } else {
-        this->_response->setStatusCode(METHOD_NOT_ALLOWED_STATUS);
-        this->_response->setStatusMessage("Method Not Allowed");
-        this->_response->setBody(ERR_PAGE(METHOD_NOT_ALLOWED_STATUS, "Method Not Allowed"));
+        this->getRequest()->appendFile(totalData.c_str(), totalData.size());
     }
-    headers["Content-Length"] = std::to_string(this->_response->getBody().size());
-    this->_response->setHeaders(headers);
+    if (this->getRequest()->getValueByKey(REQ_TRANSFER) == "chunked") {
+        Logger::get().log(DEBUG, "Decoding chunked data");
+        std::string tmp = decode_chunked(this->getRequest()->getBody());
+        this->getRequest()->setBody(tmp);
+    }
 
-    // Debugging
-    const std::map<std::string, std::string> &response_headers = this->_response->getHeaders();
-    for (std::map<std::string, std::string>::const_iterator it = response_headers.begin(); it != response_headers.end(); it++) {
-        Logger::get().log(DEBUG, "Response Header: %s: %s", it->first.c_str(), it->second.c_str());
+    if (!this->getRequest()->getHeaderEnd()) {
+        std::cout << FILE_LINE << std::endl;
+        Logger::get().log(DEBUG, "Header not ended");
+        this->setStatus(BAD_REQUEST_STATUS);
     }
 }
 
-std::string Client::getMimeType(const std::string &file_path) {
-    std::map<std::string, std::string> mimeTypeMap;
+bool Client::write_socket(void) {
+    HTTPRequest *request = this->getRequest();
+    HTTPResponse *response = this->getResponse();
+    bool keep_alive = request->getValueByKey(REQ_CONNECTION).empty()
+                          ? true
+                          : (request->getValueByKey(REQ_CONNECTION) == "keep-alive");
 
-    mimeTypeMap[".txt"] = "text/plain";
-    mimeTypeMap[".html"] = "text/html";
-    mimeTypeMap[".css"] = "text/css";
-    mimeTypeMap[".js"] = "application/javascript";
-    mimeTypeMap[".json"] = "application/json";
-    mimeTypeMap[".jpg"] = "image/jpeg";
-    mimeTypeMap[".jpeg"] = "image/jpeg";
-    mimeTypeMap[".png"] = "image/png";
-    mimeTypeMap[".gif"] = "image/gif";
-    mimeTypeMap[".ico"] = "image/x-icon";
-    mimeTypeMap[".svg"] = "image/svg+xml";
-    mimeTypeMap[".webp"] = "image/webp";
-    mimeTypeMap[".mp3"] = "audio/mpeg";
-    mimeTypeMap[".wav"] = "audio/wav";
-    mimeTypeMap[".mp4"] = "video/mp4";
-    mimeTypeMap[".mpeg"] = "video/mpeg";
+    std::string buffer_reponse;
 
-    std::string extension = file_path.substr(file_path.find_last_of('.'));
-    if (mimeTypeMap.find(extension) != mimeTypeMap.end()) {
-        return (mimeTypeMap[extension]);
+    buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
+    if (response->getUploaded() == true) {
+        Logger::get().log(INFO, "Data sent: \n\n%s", buffer_reponse.c_str());
+        int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
+        if (len < BUFFER_SIZE) {
+            this->disconnect();
+            request->clear();
+            if (len == -1)
+                return (false);
+            return (keep_alive);
+        }
     }
-    return ("text/html");
+    return (true);
 }

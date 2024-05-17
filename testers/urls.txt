@@ -1,0 +1,9 @@
+http://localhost:8080/
+http://localhost:8080/pages/
+http://localhost:8080/err/
+http://localhost:8080/err/400.html
+http://localhost:8080/err/401.html
+http://localhost:8080/err/404.html
+http://localhost:8080/err/418.html
+http://localhost:8080/cookies/
+http://localhost:8080/cgi/

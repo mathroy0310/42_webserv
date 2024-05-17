@@ -1,9 +1,7 @@
 #pragma once
 
-#define BUFFER_SIZE 1024
-
-#include "HTTPRequest.hpp"
-#include "HTTPResponse.hpp"
+#include "Request/HTTPRequest.hpp"
+#include "Response/HTTPResponse.hpp"
 #include "defines.h"
 #include "parsing.hpp"
 
@@ -14,28 +12,29 @@ class Client {
   public:
     // Constructors & Destructors
     Client(int socket_fd, t_server server);
-    ~Client(void);
+    ~Client(void);  // new stuff here
+    void setRequest(HTTPRequest *request);
+    void setResponse(HTTPResponse *response);
+    void setStatus(int status_code);
+    void setSocketTimeout(int seconds);
+    HTTPRequest *createNewRequest(void);
+    HTTPRequest *getRequest(void) const;
+    HTTPResponse *getResponse(void);
+    int getSocketFd(void) const;
+    bool getIsDoneReading(void) const { return _is_done_reading; }
+    //
 
     // Methods
-    void readRequest(void);
-    void writeResponse(void);
-    bool hasPendingOperations(void) const;
     void disconnect(void);
-
-    // Getters
-    int getSocketFd(void) const;
+    void read_socket(void);
+    bool write_socket(void);
 
   private:
+    bool _is_done_reading;
     // Attributes
     int _socket_fd;
+    int _status_code;
     t_server _server;
-    bool _is_writing;
     HTTPRequest *_request;
     HTTPResponse *_response;
-
-    // Methods
-    void processRequest(void);
-    std::string getFilePath(void);
-    void serveFile(const std::string &file_path, std::map<std::string, std::string> &headers);
-    std::string getMimeType(const std::string &file_path);
 };

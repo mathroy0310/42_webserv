@@ -18,16 +18,24 @@
 #include <sys/stat.h>
 #include <unistd.h>  // for close
 #include <vector>
-#include "Logger/Logger.hpp"
+#include <csignal>
 
+/**********/
+/* Logger */
+/**********/
+
+#include "Logger/Logger.hpp"
 /***********/
 /*  Macros */
 /***********/
+
 #define MAX_CLIENTS SOMAXCONN
+#define BUFFER_SIZE 4096 * 4 // 16KB
 
 /**********/
 /* Colors */
 /**********/
+
 #define RESET_COLOR "\033[0m"
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
@@ -41,6 +49,7 @@
 /************/
 /* Prefixes */
 /************/
+
 #define ERR_PREFIX RED "Error: "
 #define WARN_PREFIX YELLOW "Warning: "
 #define INFO_PREFIX CYAN "Info: "
@@ -49,11 +58,13 @@
 /*********************/
 /* Debugging Macros */
 /*********************/
+
 #define FILE_LINE YELLOW "[" << __FILE__ << ":" << __LINE__ << "]" << RESET_COLOR << std::endl
 
 /**************************/
 /* HTTP Request Constants */
 /**************************/
+
 #define REQ_METHOD "Request-Method"
 #define REQ_PATH "REQUEST_URI"
 #define REQ_HTTP_VERSION "Server-Protocol"
@@ -72,27 +83,36 @@
 /*********************/
 /* HTTP Status Codes */
 /*********************/
-#define OK_STATUS "200"
-#define MOVED_PERMANENTLY_STATUS "301"
-#define FOUND_STATUS "302"
-#define SEE_OTHER_STATUS "303"
-#define NOT_MODIFIED_STATUS "304"
-#define BAD_REQUEST_STATUS "400"
-#define UNAUTHORIZED_STATUS "401"
-#define PAYMENT_REQUIRED_STATUS "402"
-#define FORBIDDEN_STATUS "403"
-#define NOT_FOUND_STATUS "404"
-#define METHOD_NOT_ALLOWED_STATUS "405"
-#define IM_A_TEAPOT_STATUS "418"            // april fools joke from 1998 lol
-#define INTERNAL_SERVER_ERROR_STATUS "500"  // segfault
-#define NOT_IMPLEMENTED_STATUS "501"
-#define BAD_GATEWAY_STATUS "502"
-#define SERVICE_UNAVAILABLE_STATUS "503"
-#define HTTP_VERSION_NOT_SUPPORTED_STATUS "505"
+
+#define OK_STATUS 200
+#define CREATED_STATUS 201
+#define ACCEPTED_STATUS 202
+#define NO_CONTENT_STATUS 204
+#define MOVED_PERMANENTLY_STATUS 301
+#define FOUND_STATUS 302
+#define SEE_OTHER_STATUS 303
+#define NOT_MODIFIED_STATUS 304
+#define BAD_REQUEST_STATUS 400
+#define UNAUTHORIZED_STATUS 401
+#define PAYMENT_REQUIRED_STATUS 402
+#define FORBIDDEN_STATUS 403
+#define NOT_FOUND_STATUS 404
+#define METHOD_NOT_ALLOWED_STATUS 405
+#define CONTENT_TOO_LARGE_STATUS 413
+#define URI_TOO_LONG_STATUS 414
+#define UNSUPPORTED_MEDIA_TYPE_STATUS 415
+#define IM_A_TEAPOT_STATUS 418            // april fools joke from 1998 lol
+#define INTERNAL_SERVER_ERROR_STATUS 500  // segfault
+#define NOT_IMPLEMENTED_STATUS 501
+#define BAD_GATEWAY_STATUS 502
+#define SERVICE_UNAVAILABLE_STATUS 503
+#define GATEWAY_TIMEOUT_STATUS 504
+#define HTTP_VERSION_NOT_SUPPORTED_STATUS 505
 
 /******************/
 /* Error Messages */
 /******************/
+
 #define RESET_NL RESET_COLOR << std::endl
 #define ERR_MSG_USAGE(arg) ERR_PREFIX << "Usage: " + std::string(arg) + " [file]" << RESET_NL
 #define ERR_MSG_READ(arg) ERR_PREFIX << std::string(arg) + " " + strerror(errno) << RESET_NL
@@ -108,10 +128,38 @@
 #define ERR_MSG_NO_VALUE(arg) ERR_PREFIX << "No value for " + std::string(arg) << RESET_NL
 #define ERR_MSG_INVALID_VALUE(arg, value) \
     ERR_PREFIX << "Invalid value for " + std::string(arg) + ": " + std::string(value) << RESET_NL
+#define ERR_MSG_INVALID_METHOD(arg) ERR_PREFIX << "Invalid method: " + std::string(arg) << RESET_NL
 #define ERR_MSG_INVALID_DIRECTIVE(arg) ERR_PREFIX << "Invalid directive: " + std::string(arg) << RESET_NL
 
-#define ERR_PAGE(num, name)                                                                                    \
-    "<html><head><title>" + std::string(num) + " " + std::string(name) + "</title></head><body><center><h1>" + \
-        std::string(num) + " " + std::string(name) + "</h1></center><hr><center>webserv</center></body></html>"
+#define ERR_PAGE(err, name)                                                                             \
+    "<html><head><title>" + std::string(err) + "</title></head><body><center><h1>" + std::string(err) + \
+        "</h1></center><hr><center>" + name + "</center></body></html>"
+#define DEFAULT_PAGE                                                                                                   \
+    "<!DOCTYPE html><html><head><title>Welcome to "                                                                    \
+    "Webserv!</"                                                                                                       \
+    "title><style>body{font-family:Arial,sans-serif;background-color:#f4f4f4;color:#333;margin:20px;}h1{color:#"       \
+    "2e8b57;}p{color:#555;}ul{list-style-type:none;padding:0;}li{margin-bottom:10px;}a{color:#0066cc;text-decoration:" \
+    "none;font-weight:bold;}a:hover{text-decoration:underline;}</style></head><body><h1>Welcome to "                   \
+    "Webserv!</h1></body></html>"
+
+#define UPLOADED_DEFAULT_PAGE                                                                                        \
+    "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" "                        \
+    "content=\"width=device-width, initial-scale=1.0\"><title>Upload Done</title><style>body {font-family: \'Segoe " \
+    "UI\', Tahoma, Geneva, Verdana, sans-serif;background-color: #f8f9fa;color: #495057;text-align: center;margin: " \
+    "50px;}#upload-container {background-color: #ffffff;border-radius: 8px;box-shadow: 0 0 10px rgba(0, 0, 0, "      \
+    "0.1);padding: 20px;max-width: 400px;margin: 0 auto;}#upload-message {font-size: 24px;font-weight: bold;color: " \
+    "#28a745;margin-bottom: 20px;}#upload-message::after{content: \'\\2713\';font-size: 36px;display: block;color: " \
+    "#28a745;margin-top: 10px;}</style></head><body><div id=\"upload-container\"><div id=\"upload-message\">Upload " \
+    "Successful!</div></div></body></html>"
+
+#define UPLOADED_FAILED_PAGE                                                                                           \
+    "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" "                          \
+    "content=\"width=device-width, initial-scale=1.0\"><title>Upload Failed</title><style>body {font-family: \'Segoe " \
+    "UI\', Tahoma, Geneva, Verdana, sans-serif;background-color: #f8f9fa;color: #495057;text-align: center;margin: "   \
+    "50px;}#upload-container {background-color: #ffffff;border-radius: 8px;box-shadow: 0 0 10px rgba(0, 0, 0, "        \
+    "0.1);padding: 20px;max-width: 400px;margin: 0 auto;}#upload-message {font-size: 24px;font-weight: bold;color: "   \
+    "#dc3545;margin-bottom: 20px;}#upload-message::after{content: \'\\2717\';font-size: 36px;display: block;color: "   \
+    "#dc3545;margin-top: 10px;}</style></head><body><div id=\"upload-container\"><div id=\"upload-message\">Upload "   \
+    "Failed!</div></div></body></html>"
 
 #endif  // DEFINES_H
