@@ -9,8 +9,7 @@ Client::Client(int socket_fd, t_server server) {
     this->_response = NULL;
 }
 
-Client::~Client(void) {
-}
+Client::~Client(void) {}
 
 int Client::getSocketFd(void) const {
     return (this->_socket_fd);
@@ -26,7 +25,7 @@ HTTPRequest *Client::getRequest(void) const {
 
 HTTPResponse *Client::getResponse(void) {
     if (!this->_response) {
-        if (!this->_status_code) 
+        if (!this->_status_code)
             this->_response = new HTTPResponse(this->_request, this->_server);
         else
             this->_response = new HTTPResponse(this->_status_code, this->_server);
@@ -66,31 +65,32 @@ void Client::disconnect(void) {
     }
 }
 
-static std::string decode_chunked(const std::string &chunked_string){
-	std::string decoded_string;
-	std::istringstream iss(chunked_string);
+static std::string decode_chunked(const std::string &chunked_string) {
+    std::string decoded_string;
+    std::istringstream iss(chunked_string);
 
-	while (true){
-		std::string chunk_size_str;
-		std::getline(iss, chunk_size_str, '\r');
-		iss.ignore(); // ignore '\n'
+    while (true) {
+        std::string chunk_size_str;
+        std::getline(iss, chunk_size_str, '\r');
+        iss.ignore();  // ignore '\n'
 
-		std::istringstream size_stream(chunk_size_str);
-		size_stream >> std::hex >> std::ws;
-		size_t chunk_size;
-		size_stream >> chunk_size;
+        std::istringstream size_stream(chunk_size_str);
+        size_stream >> std::hex >> std::ws;
+        size_t chunk_size;
+        size_stream >> chunk_size;
 
-		if (chunk_size == 0)
-			break;
+        if (chunk_size == 0)
+            break;
 
         std::string chunk_data(chunk_size, '\0');
         iss.read(&chunk_data[0], chunk_size);
 
-        iss.ignore(2); // ignore '\r\n'
-
+        iss.ignore(2);  // ignore '\r\n'
+        Logger::get().log(DEBUG, "Chunk data: %s", chunk_data.c_str());
+        Logger::get().log(DEBUG, "Chunk size: %d", chunk_size);
         decoded_string += chunk_data;
     }
-	return decoded_string;
+    return decoded_string;
 }
 
 void Client::read_socket(void) {
@@ -105,7 +105,7 @@ void Client::read_socket(void) {
     this->setSocketTimeout(10);
     do {
         memset(buffer, 0, BUFFER_SIZE + 1);
-		Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());
+        Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());
         len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
         if (len > 0) {
             Logger::get().log(INFO, "Read %d bytes", len);
@@ -113,8 +113,7 @@ void Client::read_socket(void) {
         } else if (len == -1) {
             Logger::get().log(INFO, "Timeout reached or other error");
             continue;
-        } 
-        else if (len == 0) {
+        } else if (len == 0) {
             Logger::get().log(INFO, "Whole data received");
             std::cout << FILE_LINE << std::endl;
             this->disconnect();
@@ -128,30 +127,29 @@ void Client::read_socket(void) {
     this->_is_done_reading = true;
     std::string totalData(data.begin(), data.end());
 
-
-    Logger::get().log(INFO, "Data received: \n%s", totalData.c_str());
-	Logger::get().log(INFO, "Data received: %d", totalData.size());
+    Logger::get().log(INFO, "Data received: \n\n%s", totalData.c_str());
+    Logger::get().log(DEBUG, "Data received: %d", totalData.size());
     if (!this->getRequest()->getHeaderEnd()) {
         try {
             this->getRequest()->appendHeader(totalData.c_str(), totalData.size());
         } catch (int status) {
-			std::cout << FILE_LINE << std::endl;
+            std::cout << FILE_LINE << std::endl;
             this->setStatus(status);
         }
     } else {
         this->getRequest()->appendFile(totalData.c_str(), totalData.size());
     }
-	if (this->getRequest()->getValueByKey(REQ_TRANSFER) == "chunked")
-	{
-		std::string tmp = decode_chunked(this->getRequest()->getBody());
-		this->getRequest()->setBody(tmp);
-	}
+    if (this->getRequest()->getValueByKey(REQ_TRANSFER) == "chunked") {
+        Logger::get().log(DEBUG, "Decoding chunked data");
+        std::string tmp = decode_chunked(this->getRequest()->getBody());
+        this->getRequest()->setBody(tmp);
+    }
 
-	if (!this->getRequest()->getHeaderEnd())
-	{
+    if (!this->getRequest()->getHeaderEnd()) {
         std::cout << FILE_LINE << std::endl;
+        Logger::get().log(DEBUG, "Header not ended");
         this->setStatus(BAD_REQUEST_STATUS);
-	}
+    }
 }
 
 bool Client::write_socket(void) {
@@ -165,14 +163,11 @@ bool Client::write_socket(void) {
 
     buffer_reponse = response->getRequest() ? response->buildResponse() : response->getResponse();
     if (response->getUploaded() == true) {
-        Logger::get().log(INFO, "Response sent: %s", buffer_reponse.c_str());
+        Logger::get().log(INFO, "Data sent: \n\n%s", buffer_reponse.c_str());
         int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
         if (len < BUFFER_SIZE) {
+            this->disconnect();
             request->clear();
-            delete request;
-            this->setRequest(NULL);
-            delete response;
-            this->setResponse(NULL);
             if (len == -1)
                 return (false);
             return (keep_alive);
