@@ -10,7 +10,7 @@ url_file="urls.txt"
 
 # Check if urls.txt exists, if not default to a single URL
 if [ ! -f "$url_file" ]; then
-    echo "http://localhost:8080" > urls.txt
+    echo "http://localhost:8080" > "test_siege_urls.txt"
 fi
 
 # Run siege

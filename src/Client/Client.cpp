@@ -53,7 +53,8 @@ void Client::setSocketTimeout(int seconds) {
 }
 
 void Client::disconnect(void) {
-    close(this->_socket_fd);
+	if (this->_socket_fd != -1)
+    	close(this->_socket_fd);
     this->_socket_fd = -1;
     if (this->_request) {
         delete this->_request;
@@ -108,19 +109,19 @@ void Client::read_socket(void) {
         Logger::get().log(INFO, "Reading from socket %d", this->getSocketFd());
         len = recv(this->getSocketFd(), buffer, BUFFER_SIZE, MSG_DONTWAIT);
         if (len > 0) {
-            Logger::get().log(INFO, "Read %d bytes", len);
+            Logger::get().log(DEBUG, "Read %d bytes", len);
             data.insert(data.end(), buffer, buffer + len);
         } else if (len == -1) {
-            Logger::get().log(INFO, "Timeout reached or other error");
+            Logger::get().log(DEBUG, "Timeout reached or other error");
             continue;
         } else if (len == 0) {
-            Logger::get().log(INFO, "Whole data received");
-            std::cout << FILE_LINE << std::endl;
+            Logger::get().log(WARNING, "Whole data received");
+            std::cout << FILE_LINE ;
             this->disconnect();
             return;
             // throw std::runtime_error("Client disconnected");
         } else if (len < BUFFER_SIZE) {
-            Logger::get().log(INFO, "Received less than BUFFER_SIZE");
+            Logger::get().log(DEBUG, "Received less than BUFFER_SIZE");
             continue;
         }
     } while (len <= BUFFER_SIZE && len > 0);
@@ -166,8 +167,8 @@ bool Client::write_socket(void) {
         Logger::get().log(INFO, "Data sent: \n\n%s", buffer_reponse.c_str());
         int len = send(this->getSocketFd(), buffer_reponse.c_str(), buffer_reponse.length(), 0);
         if (len < BUFFER_SIZE) {
-            this->disconnect();
             request->clear();
+            this->disconnect();
             if (len == -1)
                 return (false);
             return (keep_alive);

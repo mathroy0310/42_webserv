@@ -134,6 +134,7 @@
 #define ERR_PAGE(err, name)                                                                             \
     "<html><head><title>" + std::string(err) + "</title></head><body><center><h1>" + std::string(err) + \
         "</h1></center><hr><center>" + name + "</center></body></html>"
+		
 #define DEFAULT_PAGE                                                                                                   \
     "<!DOCTYPE html><html><head><title>Welcome to "                                                                    \
     "Webserv!</"                                                                                                       \
