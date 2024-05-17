@@ -88,7 +88,7 @@ void Server::setupServerConnections(void) {
         new_socket.init();
         this->_multiplexer->addFd(new_socket.getSocketFd(), POLLIN);
         this->_listening_sockets.insert(std::make_pair(new_socket.getSocketFd(), new_socket));
-        Logger::get().log(DEBUG, "Server socket set up on address %s and port %d", ip_address.c_str(), port);
+        Logger::get().log(INFO, "Server socket set up on address %s and port %d", ip_address.c_str(), port);
     }
     this->_server_count = this->_listening_sockets.size() + 3;
 }
@@ -102,7 +102,7 @@ void Server::acceptConnections() {
             if (new_client == -1 || new_client == SERVICE_UNAVAILABLE_STATUS) {
                 continue;
             }
-            Logger::get().log(DEBUG, "New client connection [%d] on server on port %d",
+            Logger::get().log(INFO, "New client connection [%d] on server on port %d",
                               (new_client - this->_server_count), server->second.getPort());
             this->_multiplexer->addFd(new_client, POLLIN);
             this->_clients.push_back(Client(new_client, this->_config.servers[i]));
@@ -128,7 +128,7 @@ void Server::handleRequests(void) {
                 if (client->write_socket()) {
                     this->_multiplexer->removeFd(client->getSocketFd());
                     client->disconnect();
-                    Logger::get().log(DEBUG, "Disconnecting client [%d]", client->getSocketFd() + 2);
+                    Logger::get().log(INFO, "Disconnecting client [%d]", client->getSocketFd() + 2);
                     client = this->_clients.erase(client);
                     continue;
                 }
