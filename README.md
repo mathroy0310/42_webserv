@@ -1,4 +1,4 @@
-# Problemes a regler
+# Problemes à regler
 
 - Gerer les leaks, pour eviter les invalid read les aucune ressource alloue est liberer de la memoire, ducoup apres un siege le site devient tres lent
 - Post des fichiers avec le CGI ne fonctionne pas.
