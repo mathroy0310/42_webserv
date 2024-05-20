@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/15 14:04:22 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/17 14:13:31 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/20 10:29:18 by rmarceau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     t_config config = parse_conf(argv[1]);
-    Logger::get().log(INFO, "Logger is Enabled");
+    Logger::get().log(DEBUG, "Logger is Enabled");
     Logger::get().log(DEBUG, "Config file parsed successfully");
     Server server(config);
     server.run();
