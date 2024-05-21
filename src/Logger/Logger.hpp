@@ -6,7 +6,7 @@
 /*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:55 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/15 16:45:36 by maroy            ###   ########.fr       */
+/*   Updated: 2024/05/21 15:01:37 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 
 #define GST -4
 
-enum e_logLevel { DEBUG, INFO, WARNING, ERROR };
+enum e_logLevel { DEBUG, INFO, WARN, ERROR };
 
 enum e_logType { BOTH, CONSOLE, OUT_FILE };
 
