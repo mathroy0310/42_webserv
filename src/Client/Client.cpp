@@ -129,7 +129,7 @@ void Client::read_socket(void) {
             return;
             // throw std::runtime_error("Client disconnected");
         } if (len < BUFFER_SIZE) {
-            Logger::get().log(WARNING, "Received less than BUFFER_SIZE");
+            Logger::get().log(DEBUG, "Received less than BUFFER_SIZE");
             std::system("sleep 0.025");
             continue;
         }

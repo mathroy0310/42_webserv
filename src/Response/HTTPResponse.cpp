@@ -597,7 +597,7 @@ void HTTPResponse::executeCGI(void) {
         char *const argv[] = {const_cast<char *>(cgi_exec.c_str()), const_cast<char *>(this->_path.c_str()), NULL};
         execve(cgi_exec.c_str(), argv, cgi->getEnv());
         perror("execve : ");
-        Logger::get().log(WARNING, "Execution failed: Please ensure that the server has the necessary permissions to "
+        Logger::get().log(WARN, "Execution failed: Please ensure that the server has the necessary permissions to "
                                    "access the required interpreter.");
         exit(EXIT_FAILURE);
     }

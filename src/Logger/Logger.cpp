@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rmarceau <rmarceau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: maroy <maroy@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 15:50:52 by maroy             #+#    #+#             */
-/*   Updated: 2024/05/11 23:34:24 by rmarceau         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:00:21 by maroy            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ void Logger::destroy(void) {
     if (logger._log_file.is_open()) {
         logger._log_file.close();
     }
-    // No need to explicitly delete logger since it's managed by the runtime, but closing file stream explicitly.
 }
 
 void Logger::log(e_logLevel level, const char *format, ...) {
@@ -53,8 +52,8 @@ void Logger::log(e_logLevel level, const char *format, ...) {
         log_level = "INFO";
         log_color = CYAN;
         break;
-    case WARNING:
-        log_level = "WARNING";
+    case WARN:
+        log_level = "WARN";
         log_color = YELLOW;
         break;
     case ERROR:

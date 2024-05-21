@@ -6,7 +6,7 @@ concurrent=${2:-10}  # Default number of concurrent users to be 10
 duration=${3:-"1M"}  # Default duration of the test to be 1 minute
 
 # File containing the URLs to be tested
-url_file="urls.txt"
+url_file="testers/urls.txt"
 
 # Check if urls.txt exists, if not default to a single URL
 if [ ! -f "$url_file" ]; then
